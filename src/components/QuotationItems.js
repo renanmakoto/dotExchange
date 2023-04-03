@@ -12,9 +12,9 @@ export default function QuotationItems() {
         />
         <Text style={styles.dayPrice}>04/03/2023</Text>
       </View>
+      </View>
       <View style={styles.contextRight}>
         <Text style={styles.price}>$ 37,839.09</Text>
-      </View>
       </View>
     </View>
   )
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   mainContent: {
     width: "95%",
     height: "auto",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#000000",
     marginLeft: "3%",
     marginBottom: 15,
     borderRadius: 10,
@@ -32,4 +32,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
   },
+  contextLeft: {
+    width: "36%",
+    alignItems: "flex-start",
+  },
+  contextRight: {
+    width: "60%",
+    alignItems: "flex-end",
+  },
+  logoBitcoin: {
+    width: 40,
+    height: 40,
+    marginLeft: 2,
+  },
+  boxLogo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dayPrice: {
+    fontSize: 16,
+    paddingLeft: 2,
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  price: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  }
 })
