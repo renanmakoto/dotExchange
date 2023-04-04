@@ -18,8 +18,8 @@ TECHNOLOGIES USED:
 
 ### Features
 
-- [x] Design
-- [x] Functionalities
+- [ ] Design
+- [ ] Functionalities
 - [ ] Uploaded to Google Play Store
 
 <p align="center">With ❤ by <img src=https://img.shields.io/badge/-dotExtension-black /> <p/>
