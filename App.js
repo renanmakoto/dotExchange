@@ -5,7 +5,6 @@ import CurrentPrice from './src/components/CurrentPrice'
 import HistoryGraphic from './src/components/HistoryGraphic'
 import Title from './src/components/Title'
 import QuotationList from './src/components/QuotationList'
-import QuotationItems from './src/components/QuotationItems'
 
 function addZero(number) {
   if (number <= 9) {
@@ -23,14 +22,28 @@ function url(qtdDays) {
   return `https://api.coindesk.com/v1/bpi/historical/close.json?start=${start_date}&end=${end_date}`
 }
 
+async function getCoinsList(url) {
+  let response = await fetch(url)
+  let returnApi = await response.json()
+  let selectListQuotations = returnApi.bpi
+  const queryCoinsList = Object.key(selectListQuotations).map((key) => {
+    return {
+      data: key.split("-").reverse().join("/"),
+      value: selectListQuotations[key]
+    }
+  })
+  let data = queryCoinsList.reverse()
+  return data
+}
+
 async function getPriceCoinsGraphic(url) {
   let responseG = await fetch(url)
   let returnApiG = await responseG.json()
   let selectListQuotationsG = returnApiG.bpi
-  const queryCoinsList = Object.keys(selectListQuotationsG).map((key) => {
-      selectListQuotationsG[key]
+  const queryCoinsListG = Object.keys(selectListQuotationsG).map((key) => {
+      return selectListQuotationsG[key]
   })
-  let dataG = queryCoinsList
+  let dataG = queryCoinsListG
   return dataG
 }
 
@@ -66,8 +79,10 @@ export default function App() {
       />
       <CurrentPrice />
       <HistoryGraphic />
-      <QuotationList />
-      <QuotationItems />
+      <QuotationList 
+        filterDay={updateDay} 
+        listTransactions={coinsList}
+      />
     </SafeAreaView>
   )
 }
