@@ -19,7 +19,7 @@ function url(qtdDays) {
   const end_date = `${date.getFullYear()}-${addZero(date.getMonth()+1)}-${addZero(date.getDate())}`
   date.setDate(date.getDate() - listLastDays)
   const start_date = `${date.getFullYear()}-${addZero(date.getMonth()+1)}-${addZero(date.getDate())}`
-  return `https://api.coindesk.com/v1/bpi/historical/close.json?start=${start_date}&end=${end_date}`
+  return `https://api.coindesk.com/v1/bpi/currentprice.json?start=${start_date}&end=${end_date}`
 }
 
 async function getCoinsList(url) {
@@ -78,7 +78,9 @@ export default function App() {
         barStyle='light-content'
       />
       <CurrentPrice />
-      <HistoryGraphic />
+      <HistoryGraphic 
+        infoDataGraphic={coinsGraphicList}
+      />
       <QuotationList 
         filterDay={updateDay} 
         listTransactions={coinsList}
