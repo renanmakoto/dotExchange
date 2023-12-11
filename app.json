@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "dotCoin",
-    "slug": "dotCoin",
+    "slug": "dotcoin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,16 +15,24 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.renanmakoto.dotCoin"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.renanmakoto.dotCoin"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "968a9733-cf5a-4ddd-987b-692ff2e13925"
+      }
+    },
+    "owner": "renanmakoto"
   }
 }
