@@ -1,6 +1,6 @@
 <h1 align="center">dotCoin</h1>
 
-<p align="center">A Bitcoin price checker I am developing to practice my React Native skills.</p>
+<p align="center">A Canadian Dollar price checker.</p>
 
 <div align="center">
 
