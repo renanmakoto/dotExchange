@@ -20,8 +20,8 @@ TECHNOLOGIES USED:
 
 ### Features
 
-- [ ] Design
-- [ ] Functionalities
+- [X] Design
+- [X] Functionalities
 - [ ] Uploaded to Google Play Store
 
       
