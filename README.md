@@ -24,6 +24,9 @@ TECHNOLOGIES USED:
 - [ ] Functionalities
 - [ ] Uploaded to Google Play Store
 
+      
+![2024-07-01-13-40-39-ezgif com-crop](https://github.com/renanmakoto/dotCoin/assets/65373130/917c1cda-3cf3-48ba-a601-fceb1ea015c6)
+
 </div>
 
 <p align="center">With ❤ by <img src=https://img.shields.io/badge/-dotExtension-black /> <p/>
