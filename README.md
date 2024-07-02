@@ -12,7 +12,7 @@ TECHNOLOGIES USED:
 <a href="https://reactjs.org/" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/64px-React-icon.svg.png" /></a>
 <a href="https://nodejs.org/"><img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original.svg" style="width: 64px; height: 64px;" /></a>
 <a href="https://developer.android.com/studio"><img src="https://1.bp.blogspot.com/-LgTa-xDiknI/X4EflN56boI/AAAAAAAAPuk/24YyKnqiGkwRS9-_9suPKkfsAwO4wHYEgCLcBGAsYHQ/s0/image9.png" style="width: 64px; height: 64px" /></a>
-<a href="https://expo.dev/"><img src="https://res.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_256,w_256,f_auto,q_auto:eco,dpr_1/q4q8emquy5eivdz4quk7" style="width: 64px; height: 64px" /></a>
+<a href="https://expo.dev/"><img src="https://raw.githubusercontent.com/expo/logos/main/png/logo-type-a.png" style="width: 64px; height: 64px" /></a>
 
 <h4 align="center"> 
 	🚧  dotCoin 🚀 Will be uploaded to Google Play Store soon...  🚧
