@@ -48,6 +48,7 @@ export default function CurrencyConverter(props) {
         value={amount}
         onChangeText={handleAmountChange}
       />
+      
       <TouchableOpacity style={styles.toggleButton} onPress={toggleConversionType}>
         <Text style={styles.toggleButtonText}>
           {conversionType === 'cadToBrl' ? 'CAD to BRL' : 'BRL to CAD'}
