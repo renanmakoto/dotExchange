@@ -54,6 +54,7 @@ export default function CurrencyConverter(props) {
           {conversionType === 'cadToBrl' ? 'CAD to BRL' : 'BRL to CAD'}
         </Text>
       </TouchableOpacity>
+      
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
