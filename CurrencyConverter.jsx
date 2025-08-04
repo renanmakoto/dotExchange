@@ -30,7 +30,7 @@ export default function CurrencyConverter() {
   }, [])
 
   const handleAmountChange = (text) => {
-    setAmount(text.replace(/[^0-9.]/g, '')) // allow decimals
+    setAmount(text.replace(/[^0-9.]/g, ''))
   }
 
   const toggleConversionType = () => {
