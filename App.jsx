@@ -1,8 +1,8 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import CurrencyConverter from './CurrencyConverter'
-import Header from './Header'
-import Footer from './Footer'
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import CurrencyConverter from './components/CurrencyConverter';
 
 export default function App() {
   return (
@@ -11,7 +11,7 @@ export default function App() {
       <CurrencyConverter />
       <Footer />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -21,4 +21,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-})
+});
