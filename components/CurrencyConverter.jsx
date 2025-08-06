@@ -1,43 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Text, Button, StyleSheet } from 'react-native';
 import axios from 'axios';
 
 export default function CurrencyConverter() {
-  const [loading, setLoading] = useState(true);
-  const [rate, setRate] = useState(null);
-  const [conversionType, setConversionType] = useState('cadToBrl');
   const [amount, setAmount] = useState('1');
-  const [date, setDate] = useState(null);
+  const [result, setResult] = useState(null);
+  const [date, setDate] = useState('');
 
-  useEffect(() => {
-    const fetchRate = async () => {
-      try {
-        const res = await axios.get(
-          'https://api.bcb.gov.br/dados/serie/bcdata.sgs.16921/dados/ultimos/1?formato=json'
-        );
-        const data = res.data[0];
-        setRate(parseFloat(data.valor.replace(',', '.')));
-        setDate(data.data);
-      } catch (err) {
-        console.error('Error fetching rate:', err);
-      } finally {
-        setLoading(false);
+  const fetchExchangeRate = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+
+      const response = await axios.get(
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoCAD-USD(dataCotacao=@dataCotacao)?@dataCotacao='${today}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`
+      );
+
+      if (response.data.value.length > 0) {
+        const rate = response.data.value[0].cotacaoVenda;
+        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
+        const converted = (parseFloat(amount) * rate).toFixed(2);
+
+        setResult(`${amount} CAD = ${converted} BRL`);
+        setDate(`Rate date: ${rateDate}`);
+      } else {
+        setResult('No rate available.');
+        setDate('');
       }
-    };
-
-    fetchRate();
-  }, []);
-
-  const toggleConversionType = () => {
-    setConversionType(prev => (prev === 'cadToBrl' ? 'brlToCad' : 'cadToBrl'));
-  };
-
-  const getConvertedValue = () => {
-    const num = parseFloat(amount) || 0;
-    if (conversionType === 'cadToBrl') {
-      return (num * rate).toFixed(2);
+    } catch (error) {
+      setResult('Failed to fetch exchange rate.');
+      setDate('');
     }
-    return (num / rate).toFixed(2);
   };
 
   return (
@@ -45,26 +37,12 @@ export default function CurrencyConverter() {
       <TextInput
         style={styles.input}
         keyboardType="numeric"
-        placeholder="Enter amount"
         value={amount}
         onChangeText={setAmount}
       />
-      <TouchableOpacity style={styles.button} onPress={toggleConversionType}>
-        <Text style={styles.buttonText}>
-          {conversionType === 'cadToBrl' ? 'CAD to BRL' : 'BRL to CAD'}
-        </Text>
-      </TouchableOpacity>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#00ADA2" />
-      ) : (
-        <>
-          <Text style={styles.result}>
-            {amount} {conversionType === 'cadToBrl' ? 'CAD' : 'BRL'} = {getConvertedValue()} {conversionType === 'cadToBrl' ? 'BRL' : 'CAD'}
-          </Text>
-          <Text style={styles.date}>Rate date: {date}</Text>
-        </>
-      )}
+      <Button title="CAD to BRL" onPress={fetchExchangeRate} color="#00ADA2" />
+      {result && <Text style={styles.result}>{result}</Text>}
+      {date && <Text style={styles.date}>{date}</Text>}
     </View>
   );
 }
@@ -75,32 +53,21 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   input: {
-    height: 40,
-    borderColor: '#fff',
-    borderWidth: 1,
+    fontSize: 30,
     marginBottom: 10,
-    paddingHorizontal: 10,
-    width: '80%',
-    fontSize: 18,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#00ADA2',
+    backgroundColor: 'white',
     padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    minWidth: 100,
+    textAlign: 'center',
   },
   result: {
     fontSize: 20,
-    color: '#fff',
+    marginTop: 20,
+    color: 'white',
   },
   date: {
     fontSize: 14,
-    color: '#ccc',
     marginTop: 5,
+    color: 'white',
   },
 });
