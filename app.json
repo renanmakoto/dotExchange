@@ -5,13 +5,23 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.renanmakoto.dotCoin"
     },
     "android": {
-      "package": "com.renanmakoto.dotCoin"
+      "package": "com.renanmakoto.dotCoin",
+      "jsEngine": "jsc"
     },
     "web": {},
     "extra": {
