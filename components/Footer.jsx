@@ -4,7 +4,7 @@ import { View, StyleSheet, Text } from 'react-native'
 export default function Footer() {
   return (
     <View style={styles.container}>
-        <Text style={styles.footerText}>2023 - by dotExtension | Renan Makoto</Text>
+        <Text style={styles.footerText}>2025 - by dotExtension</Text>
     </View>
   )
 }
