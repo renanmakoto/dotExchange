@@ -3,7 +3,7 @@ import { View, TextInput, Text, Button, StyleSheet } from 'react-native'
 import axios from 'axios'
 
 export default function CurrencyConverter() {
-  const [amount, setAmount] = useState('1');
+  const [amount, setAmount] = useState('1')
   const [result, setResult] = useState(null);
   const [date, setDate] = useState('');
 
