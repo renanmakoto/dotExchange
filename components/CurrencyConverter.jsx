@@ -9,7 +9,7 @@ export default function CurrencyConverter() {
 
   const fetchExchangeRate = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0]
 
       const response = await axios.get(
         `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoCAD-USD(dataCotacao=@dataCotacao)?@dataCotacao='${today}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`
