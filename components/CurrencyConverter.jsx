@@ -17,7 +17,7 @@ export default function CurrencyConverter() {
 
       if (response.data.value.length > 0) {
         const rate = response.data.value[0].cotacaoVenda
-        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
+        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/')
         const converted = (parseFloat(amount) * rate).toFixed(2);
 
         setResult(`${amount} CAD = ${converted} BRL`);
