@@ -5,7 +5,7 @@ import axios from 'axios'
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1')
   const [result, setResult] = useState(null)
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState('')
 
   const fetchExchangeRate = async () => {
     try {
