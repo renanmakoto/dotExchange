@@ -13,7 +13,7 @@ export default function CurrencyConverter() {
 
       const response = await axios.get(
         `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoCAD-USD(dataCotacao=@dataCotacao)?@dataCotacao='${today}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`
-      );
+      )
 
       if (response.data.value.length > 0) {
         const rate = response.data.value[0].cotacaoVenda;
