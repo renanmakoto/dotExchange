@@ -11,19 +11,30 @@ export default function CurrencyConverter() {
 
   const getLastBusinessDay = () => {
     const today = new Date();
-    const nowUTC = today.getUTCHours();
-    const brtCutoffUTC = 16; // 1 PM Brasília = 16:00 UTC
+    let day = today.getDay();
 
-    // If today is Sat or Sun, go back to Friday
-    const day = today.getDay();
-    if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
-    else if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
-    else if (nowUTC < brtCutoffUTC) today.setDate(today.getDate() - 1); // before 1pm BRT
+    if (day === 0) today.setDate(today.getDate() - 2);
+    else if (day === 6) today.setDate(today.getDate() - 1);
+
+    const nowUTC = new Date().getUTCHours();
+    if (nowUTC < 16) today.setDate(today.getDate() - 1);
 
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    return `${mm}-${dd}-${yyyy}`; // Format expected by BCB
+
+    return `${mm}-${dd}-${yyyy}`;
+  };
+
+  const formatBRL = (value) => {
+    return parseFloat(value)
+      .toFixed(2)
+      .replace('.', ',')
+      .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  const formatCAD = (value) => {
+    return parseFloat(value).toFixed(2); // 500.00
   };
 
   const fetchExchangeRate = async () => {
@@ -34,39 +45,36 @@ export default function CurrencyConverter() {
         `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='CAD'&@dataCotacao='${formattedDate}'&$format=json`
       );
 
-      console.log('API Response:', response.data.value);
-
       if (response.data.value.length > 0) {
-        // Find the latest entry
-        const latest = response.data.value[response.data.value.length - 1];
+        const rates = response.data.value;
+        const latest = rates.find(r => r.tipoBoletim === 'Fechamento PTAX') || rates[rates.length - 1];
 
         const rate = latest.cotacaoVenda;
-        const [datePart, timePartRaw] = latest.dataHoraCotacao.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const timePart = timePartRaw.slice(0, 5); // HH:MM
+        const [dateStr, timeStr] = latest.dataHoraCotacao.split(' ');
 
-        const formattedDate = `${day}/${month}/${year}`;
-        setRateDate(formattedDate);
-        setRateTime(timePart);
+        let converted, display;
 
-        let converted;
         if (isCadToBrl) {
-          converted = (parseFloat(amount) * rate).toFixed(2);
-          setResult(`${amount} CAD = ${converted} BRL`);
+          converted = parseFloat(amount) * rate;
+          display = `${formatCAD(amount)} CAD = ${formatBRL(converted)} BRL`;
         } else {
-          converted = (parseFloat(amount) / rate).toFixed(2);
-          setResult(`${amount} BRL = ${converted} CAD`);
+          converted = parseFloat(amount) / rate;
+          display = `${formatBRL(amount)} BRL = ${formatCAD(converted)} CAD`;
         }
+
+        setResult(display);
+        setRateTime(timeStr.split('.')[0]);
+        setRateDate(dateStr.split('-').reverse().join('/'));
       } else {
         setResult('No rate available.');
-        setRateDate('');
         setRateTime('');
+        setRateDate('');
       }
     } catch (error) {
       console.error('Exchange API error:', error);
       setResult('Failed to fetch exchange rate.');
-      setRateDate('');
       setRateTime('');
+      setRateDate('');
     }
   };
 
@@ -92,12 +100,11 @@ export default function CurrencyConverter() {
       />
 
       {result && <Text style={styles.result}>{result}</Text>}
-
-      {(rateDate && rateTime) && (
-        <View style={styles.dateContainer}>
-          <Text style={styles.dateTitle}>Latest available rate:</Text>
-          <Text style={styles.dateText}>Time: {rateTime}</Text>
-          <Text style={styles.dateText}>Date: {rateDate} (Brasília time)</Text>
+      {(rateTime && rateDate) && (
+        <View style={styles.dateBox}>
+          <Text style={styles.dateLabel}>Rate date (Brasília time):</Text>
+          <Text style={styles.dateValue}>{rateTime}</Text>
+          <Text style={styles.dateValue}>{rateDate}</Text>
         </View>
       )}
     </View>
@@ -131,16 +138,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: 'white',
   },
-  dateContainer: {
-    marginTop: 15,
+  dateBox: {
+    marginTop: 20,
     alignItems: 'center',
   },
-  dateTitle: {
+  dateLabel: {
     fontSize: 14,
     color: 'white',
-    fontWeight: 'bold',
+    marginBottom: 4,
   },
-  dateText: {
+  dateValue: {
     fontSize: 14,
     color: 'white',
   },
