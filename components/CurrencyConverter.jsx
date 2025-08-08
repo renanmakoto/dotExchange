@@ -5,22 +5,20 @@ import axios from 'axios';
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1');
   const [result, setResult] = useState(null);
-  const [date, setDate] = useState('');
+  const [rateTime, setRateTime] = useState('');
+  const [rateDate, setRateDate] = useState('');
   const [isCadToBrl, setIsCadToBrl] = useState(true);
 
   const getLastBusinessDay = () => {
     const today = new Date();
-    let day = today.getDay(); // 0 (Sun) to 6 (Sat)
+    let day = today.getDay();
 
-    // If weekend, go back to Friday
-    if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
-    else if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
+    if (day === 0) today.setDate(today.getDate() - 2); // Sunday
+    else if (day === 6) today.setDate(today.getDate() - 1); // Saturday
 
-    // If before 1pm Brasília time (UTC-3), use yesterday’s rate
     const nowUTC = new Date().getUTCHours();
     if (nowUTC < 16) today.setDate(today.getDate() - 1); // before 1pm BR time
 
-    // Format: MM-DD-YYYY (required by BCB)
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
@@ -38,9 +36,11 @@ export default function CurrencyConverter() {
 
       if (response.data.value.length > 0) {
         const rate = response.data.value[0].cotacaoVenda;
-        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
-        let converted;
+        const [datePart, timePartRaw] = response.data.value[0].dataHoraCotacao.split('T');
+        const formattedDate = datePart.split('-').reverse().join('/');
+        const formattedTime = timePartRaw.split('.')[0]; // HH:mm:ss
 
+        let converted;
         if (isCadToBrl) {
           converted = (parseFloat(amount) * rate).toFixed(2);
           setResult(`${amount} CAD = ${converted} BRL`);
@@ -49,15 +49,18 @@ export default function CurrencyConverter() {
           setResult(`${amount} BRL = ${converted} CAD`);
         }
 
-        setDate(`Rate date: ${rateDate}`);
+        setRateTime(formattedTime);
+        setRateDate(formattedDate);
       } else {
         setResult('No rate available.');
-        setDate('');
+        setRateTime('');
+        setRateDate('');
       }
     } catch (error) {
       console.error('Exchange API error:', error);
       setResult('Failed to fetch exchange rate.');
-      setDate('');
+      setRateTime('');
+      setRateDate('');
     }
   };
 
@@ -82,8 +85,15 @@ export default function CurrencyConverter() {
         color="#00ADA2"
       />
 
-      {result && <Text style={styles.result}>{result}</Text>}
-      {date && <Text style={styles.date}>{date}</Text>}
+      <Text style={styles.result}>{result}</Text>
+
+      {rateDate !== '' && (
+        <View style={styles.dateContainer}>
+          <Text style={styles.date}>Rate date:</Text>
+          <Text style={styles.date}>{rateTime}</Text>
+          <Text style={styles.date}>{rateDate}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -115,9 +125,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: 'white',
   },
+  dateContainer: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
   date: {
     fontSize: 14,
-    marginTop: 5,
     color: 'white',
   },
 });
