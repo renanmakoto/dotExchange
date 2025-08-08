@@ -57,8 +57,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: 'white',
     padding: 10,
-    minWidth: 100,
+    minWidth: 200,
     textAlign: 'center',
+    borderRadius: 10  
   },
   result: {
     fontSize: 20,
