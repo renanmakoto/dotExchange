@@ -1,51 +1,65 @@
-import React, { useState } from 'react'
-import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from 'react-native'
-import axios from 'axios'
+import React, { useState } from 'react';
+import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 
 export default function CurrencyConverter() {
-  const [amount, setAmount] = useState('1')
-  const [result, setResult] = useState(null)
-  const [date, setDate] = useState('')
-  const [isCadToBrl, setIsCadToBrl] = useState(true)
+  const [amount, setAmount] = useState('1');
+  const [result, setResult] = useState(null);
+  const [date, setDate] = useState('');
+  const [isCadToBrl, setIsCadToBrl] = useState(true);
+
+  const getLastBusinessDay = () => {
+    const today = new Date();
+    let day = today.getDay(); // 0 (Sun) to 6 (Sat)
+
+    // If weekend, go back to Friday
+    if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
+    else if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
+
+    // If before 1pm Brasília time (UTC-3), use yesterday’s rate
+    const nowUTC = new Date().getUTCHours();
+    if (nowUTC < 16) today.setDate(today.getDate() - 1); // before 1pm BR time
+
+    // Format: MM-DD-YYYY (required by BCB)
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+
+    return `${mm}-${dd}-${yyyy}`;
+  };
 
   const fetchExchangeRate = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const formattedDate = getLastBusinessDay();
 
       const response = await axios.get(
-        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoCAD-USD(dataCotacao=@dataCotacao)?@dataCotacao='${today}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`
-      )
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='CAD'&@dataCotacao='${formattedDate}'&$format=json`
+      );
 
       if (response.data.value.length > 0) {
-        const rate = response.data.value[0].cotacaoVenda
-        const rateDateTime = response.data.value[0].dataHoraCotacao
-        const [rawDate, rawTime] = rateDateTime.split('T')
-        const [year, month, day] = rawDate.split('-')
-        const formattedDate = `${day}/${month}/${year}`
-        const formattedTime = rawTime.split('.')[0]
-
-        let converted = 0
-        let displayText = ''
+        const rate = response.data.value[0].cotacaoVenda;
+        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
+        let converted;
 
         if (isCadToBrl) {
-          converted = (parseFloat(amount) * rate).toFixed(2)
-          displayText = `${amount} CAD = ${converted} BRL`
+          converted = (parseFloat(amount) * rate).toFixed(2);
+          setResult(`${amount} CAD = ${converted} BRL`);
         } else {
-          converted = (parseFloat(amount) / rate).toFixed(2)
-          displayText = `${amount} BRL = ${converted} CAD`
+          converted = (parseFloat(amount) / rate).toFixed(2);
+          setResult(`${amount} BRL = ${converted} CAD`);
         }
 
-        setResult(displayText)
-        setDate(`Rate time: ${formattedTime}\nRate date: ${formattedDate}`)
+        setDate(`Rate date: ${rateDate}`);
       } else {
-        setResult('No rate available.')
-        setDate('')
+        setResult('No rate available.');
+        setDate('');
       }
     } catch (error) {
-      setResult('Failed to fetch exchange rate.')
-      setDate('')
+      console.error('Exchange API error:', error);
+      setResult('Failed to fetch exchange rate.');
+      setDate('');
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -55,17 +69,15 @@ export default function CurrencyConverter() {
         value={amount}
         onChangeText={setAmount}
       />
-      <TouchableOpacity
-        onPress={() => setIsCadToBrl(!isCadToBrl)}
-        style={styles.switchButton}
-      >
+
+      <TouchableOpacity style={styles.switchButton} onPress={() => setIsCadToBrl(!isCadToBrl)}>
         <Text style={styles.switchText}>
           {isCadToBrl ? 'Switch to BRL → CAD' : 'Switch to CAD → BRL'}
         </Text>
       </TouchableOpacity>
 
       <Button
-        title={isCadToBrl ? 'CONVERT CAD TO BRL' : 'CONVERT BRL TO CAD'}
+        title={isCadToBrl ? 'Convert CAD to BRL' : 'Convert BRL to CAD'}
         onPress={fetchExchangeRate}
         color="#00ADA2"
       />
@@ -73,7 +85,7 @@ export default function CurrencyConverter() {
       {result && <Text style={styles.result}>{result}</Text>}
       {date && <Text style={styles.date}>{date}</Text>}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -88,16 +100,14 @@ const styles = StyleSheet.create({
     padding: 10,
     minWidth: 200,
     textAlign: 'center',
-    borderRadius: 20,
+    borderRadius: 10,
   },
   switchButton: {
-    backgroundColor: '#d3d3d3',
-    padding: 10,
-    borderRadius: 15,
     marginBottom: 10,
   },
   switchText: {
-    fontSize: 16,
+    color: '#00ADA2',
+    marginBottom: 10,
     fontWeight: 'bold',
   },
   result: {
@@ -109,7 +119,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     color: 'white',
-    textAlign: 'center',
-    lineHeight: 20,
   },
-})
+});
