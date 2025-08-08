@@ -1,43 +1,47 @@
-import React, { useState } from 'react'
-import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from 'react-native'
-import axios from 'axios'
+import React, { useState } from 'react';
+import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 
 export default function CurrencyConverter() {
-  const [amount, setAmount] = useState('1')
-  const [result, setResult] = useState(null)
-  const [date, setDate] = useState('')
-  const [isCadToBrl, setIsCadToBrl] = useState(true)
+  const [amount, setAmount] = useState('1');
+  const [result, setResult] = useState(null);
+  const [date, setDate] = useState('');
+  const [isCadToBrl, setIsCadToBrl] = useState(true);
 
   const fetchExchangeRate = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('pt-BR').split('/').join('-'); // dd-MM-yyyy
+      const currency = isCadToBrl ? 'CAD' : 'CAD'; // Always fetch CAD rate
 
-      const response = await axios.get(
-        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda='CAD',dataCotacao='2025-08-08')?$top=1&$orderby=cotacaoVenda desc&$format=json`
-      )
+      const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='${currency}'&@dataCotacao='${formattedDate}'&$top=1&$orderby=cotacaoVenda desc&$format=json`;
+
+      const response = await axios.get(url);
 
       if (response.data.value.length > 0) {
-        const rate = response.data.value[0].cotacaoVenda
-        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/')
+        const rate = response.data.value[0].cotacaoVenda;
+        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
+        let converted;
 
-        const converted = isCadToBrl
-          ? (parseFloat(amount) * rate).toFixed(2)
-          : (parseFloat(amount) / rate).toFixed(2)
+        if (isCadToBrl) {
+          converted = (parseFloat(amount) * rate).toFixed(2);
+          setResult(`${amount} CAD = ${converted} BRL`);
+        } else {
+          converted = (parseFloat(amount) / rate).toFixed(2);
+          setResult(`${amount} BRL = ${converted} CAD`);
+        }
 
-        const fromCurrency = isCadToBrl ? 'CAD' : 'BRL'
-        const toCurrency = isCadToBrl ? 'BRL' : 'CAD'
-
-        setResult(`${amount} ${fromCurrency} = ${converted} ${toCurrency}`)
-        setDate(`Rate date: ${rateDate}`)
+        setDate(`Rate date: ${rateDate}`);
       } else {
-        setResult('No rate available.')
-        setDate('')
+        setResult('No rate available.');
+        setDate('');
       }
     } catch (error) {
-      setResult('Failed to fetch exchange rate.')
-      setDate('')
+      console.error('Exchange API error:', error);
+      setResult('Failed to fetch exchange rate.');
+      setDate('');
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -48,14 +52,14 @@ export default function CurrencyConverter() {
         onChangeText={setAmount}
       />
 
-      <TouchableOpacity onPress={() => setIsCadToBrl(!isCadToBrl)} style={styles.switchBtn}>
+      <TouchableOpacity style={styles.switchButton} onPress={() => setIsCadToBrl(!isCadToBrl)}>
         <Text style={styles.switchText}>
-          Switch to {isCadToBrl ? 'BRL → CAD' : 'CAD → BRL'}
+          {isCadToBrl ? 'Switch to BRL → CAD' : 'Switch to CAD → BRL'}
         </Text>
       </TouchableOpacity>
 
       <Button
-        title={isCadToBrl ? 'CAD to BRL' : 'BRL to CAD'}
+        title={isCadToBrl ? 'Convert CAD to BRL' : 'Convert BRL to CAD'}
         onPress={fetchExchangeRate}
         color="#00ADA2"
       />
@@ -63,7 +67,7 @@ export default function CurrencyConverter() {
       {result && <Text style={styles.result}>{result}</Text>}
       {date && <Text style={styles.date}>{date}</Text>}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -80,14 +84,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderRadius: 10,
   },
-  switchBtn: {
-    marginBottom: 15,
-    backgroundColor: '#ccc',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
+  switchButton: {
+    marginBottom: 10,
   },
   switchText: {
+    color: '#00ADA2',
+    marginBottom: 10,
     fontWeight: 'bold',
   },
   result: {
@@ -100,4 +102,4 @@ const styles = StyleSheet.create({
     marginTop: 5,
     color: 'white',
   },
-})
+});
