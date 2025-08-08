@@ -13,7 +13,7 @@ export default function CurrencyConverter() {
       const today = new Date().toISOString().split('T')[0]
 
       const response = await axios.get(
-        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda='CAD',dataCotacao='${today}')?$top=1&$orderby=cotacaoVenda desc&$format=json`
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda='CAD',dataCotacao='2025-08-08')?$top=1&$orderby=cotacaoVenda desc&$format=json`
       )
 
       if (response.data.value.length > 0) {
