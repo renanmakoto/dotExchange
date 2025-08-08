@@ -5,27 +5,25 @@ import axios from 'axios';
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1');
   const [result, setResult] = useState(null);
-  const [date, setDate] = useState('');
+  const [rateTime, setRateTime] = useState('');
+  const [rateDate, setRateDate] = useState('');
   const [isCadToBrl, setIsCadToBrl] = useState(true);
 
   const getLastBusinessDay = () => {
     const today = new Date();
-    let day = today.getDay(); // 0 (Sun) to 6 (Sat)
+    const nowUTC = today.getUTCHours();
+    const brtCutoffUTC = 16; // 1 PM Brasília = 16:00 UTC
 
-    // If weekend, go back to Friday
-    if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
-    else if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
+    // If today is Sat or Sun, go back to Friday
+    const day = today.getDay();
+    if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
+    else if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
+    else if (nowUTC < brtCutoffUTC) today.setDate(today.getDate() - 1); // before 1pm BRT
 
-    // If before 1pm Brasília time (UTC-3), use yesterday’s rate
-    const nowUTC = new Date().getUTCHours();
-    if (nowUTC < 16) today.setDate(today.getDate() - 1); // before 1pm BR time
-
-    // Format: MM-DD-YYYY (required by BCB)
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-
-    return `${mm}-${dd}-${yyyy}`;
+    return `${mm}-${dd}-${yyyy}`; // Format expected by BCB
   };
 
   const fetchExchangeRate = async () => {
@@ -36,11 +34,22 @@ export default function CurrencyConverter() {
         `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='CAD'&@dataCotacao='${formattedDate}'&$format=json`
       );
 
-      if (response.data.value.length > 0) {
-        const rate = response.data.value[0].cotacaoVenda;
-        const rateDate = response.data.value[0].dataHoraCotacao.split('T')[0].split('-').reverse().join('/');
-        let converted;
+      console.log('API Response:', response.data.value);
 
+      if (response.data.value.length > 0) {
+        // Find the latest entry
+        const latest = response.data.value[response.data.value.length - 1];
+
+        const rate = latest.cotacaoVenda;
+        const [datePart, timePartRaw] = latest.dataHoraCotacao.split(' ');
+        const [year, month, day] = datePart.split('-');
+        const timePart = timePartRaw.slice(0, 5); // HH:MM
+
+        const formattedDate = `${day}/${month}/${year}`;
+        setRateDate(formattedDate);
+        setRateTime(timePart);
+
+        let converted;
         if (isCadToBrl) {
           converted = (parseFloat(amount) * rate).toFixed(2);
           setResult(`${amount} CAD = ${converted} BRL`);
@@ -48,16 +57,16 @@ export default function CurrencyConverter() {
           converted = (parseFloat(amount) / rate).toFixed(2);
           setResult(`${amount} BRL = ${converted} CAD`);
         }
-
-        setDate(`Rate date: ${rateDate}`);
       } else {
         setResult('No rate available.');
-        setDate('');
+        setRateDate('');
+        setRateTime('');
       }
     } catch (error) {
       console.error('Exchange API error:', error);
       setResult('Failed to fetch exchange rate.');
-      setDate('');
+      setRateDate('');
+      setRateTime('');
     }
   };
 
@@ -82,8 +91,15 @@ export default function CurrencyConverter() {
         color="#00ADA2"
       />
 
-      <Text style={styles.result}>{result}</Text>
-      <Text style={styles.date}>{date}</Text>
+      {result && <Text style={styles.result}>{result}</Text>}
+
+      {(rateDate && rateTime) && (
+        <View style={styles.dateContainer}>
+          <Text style={styles.dateTitle}>Latest available rate:</Text>
+          <Text style={styles.dateText}>Time: {rateTime}</Text>
+          <Text style={styles.dateText}>Date: {rateDate} (Brasília time)</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -115,9 +131,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: 'white',
   },
-  date: {
-    fontSize: 14,
+  dateContainer: {
     marginTop: 15,
+    alignItems: 'center',
+  },
+  dateTitle: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  dateText: {
+    fontSize: 14,
     color: 'white',
   },
 });
