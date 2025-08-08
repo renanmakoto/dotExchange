@@ -8,15 +8,33 @@ export default function CurrencyConverter() {
   const [date, setDate] = useState('');
   const [isCadToBrl, setIsCadToBrl] = useState(true);
 
+  const getLastBusinessDay = () => {
+    const today = new Date();
+    let day = today.getDay(); // 0 (Sun) to 6 (Sat)
+
+    // If weekend, go back to Friday
+    if (day === 0) today.setDate(today.getDate() - 2); // Sunday → Friday
+    else if (day === 6) today.setDate(today.getDate() - 1); // Saturday → Friday
+
+    // If before 1pm Brasília time (UTC-3), use yesterday’s rate
+    const nowUTC = new Date().getUTCHours();
+    if (nowUTC < 16) today.setDate(today.getDate() - 1); // before 1pm BR time
+
+    // Format: MM-DD-YYYY (required by BCB)
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+
+    return `${mm}-${dd}-${yyyy}`;
+  };
+
   const fetchExchangeRate = async () => {
     try {
-      const today = new Date();
-      const formattedDate = today.toLocaleDateString('pt-BR').split('/').join('-'); // dd-MM-yyyy
-      const currency = isCadToBrl ? 'CAD' : 'CAD'; // Always fetch CAD rate
+      const formattedDate = getLastBusinessDay();
 
-      const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='${currency}'&@dataCotacao='${formattedDate}'&$top=1&$orderby=cotacaoVenda desc&$format=json`;
-
-      const response = await axios.get(url);
+      const response = await axios.get(
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='CAD'&@dataCotacao='${formattedDate}'&$format=json`
+      );
 
       if (response.data.value.length > 0) {
         const rate = response.data.value[0].cotacaoVenda;
