@@ -42,7 +42,7 @@ export default function CurrencyConverter() {
       const formattedDate = getLastBusinessDay();
 
       const response = await axios.get(
-        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='CAD'&@dataCotacao='${formattedDate}'&$format=json`
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaAte(moeda=@moeda,dataCotacaoAte=@dataCotacaoAte)?@moeda='CAD'&@dataCotacaoAte='08-08-2025'&$top=1&$orderby=dataHoraCotacao%20desc&$format=json`
       );
 
       if (response.data.value.length > 0) {
