@@ -3,7 +3,7 @@ import { View, TextInput, Text, StyleSheet, TouchableOpacity, ActivityIndicator 
 import axios from 'axios'
 
 export default function CurrencyConverter() {
-  const [amount, setAmount] = useState('1');
+  const [amount, setAmount] = useState('1')
   const [isCadToBrl, setIsCadToBrl] = useState(true);
   const [resultText, setResultText] = useState('');
   const [rateTime, setRateTime] = useState(''); // HH:mm (BRT)
