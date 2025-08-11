@@ -133,9 +133,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   switchText: {
-    color: '#00ADA2',
-    marginBottom: 10,
+    color: 'white',
     fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
   result: {
     fontSize: 20,
