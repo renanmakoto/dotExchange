@@ -126,6 +126,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   switchButton: {
+    backgroundColor: '#00ADA2',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     marginBottom: 10,
   },
   switchText: {
