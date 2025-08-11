@@ -6,17 +6,16 @@ export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1');
   const [isCadToBrl, setIsCadToBrl] = useState(true);
   const [resultText, setResultText] = useState('');
-  const [rateTime, setRateTime] = useState(''); // e.g., "13:10"
-  const [rateDate, setRateDate] = useState(''); // e.g., "07/08/2025"
+  const [rateTime, setRateTime] = useState(''); // HH:mm (BRT)
+  const [rateDate, setRateDate] = useState(''); // DD/MM/YYYY (BRT)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Helpers
-  const todayMMDDYYYY = () => {
-    const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const yyyy = now.getFullYear();
+  // ---------- Helpers ----------
+  const toMMDDYYYY = (d) => {
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
     return `${mm}-${dd}-${yyyy}`;
   };
 
@@ -30,12 +29,71 @@ export default function CurrencyConverter() {
     }).format(value);
   };
 
+  // Be flexible with BRL-style input like "1.987,00": remove thousand sep, normalize comma to dot
   const sanitizeAmount = (text) => {
-    // allow digits and a single dot or comma
-    const cleaned = text.replace(/[^0-9.,]/g, '');
-    // normalize comma to dot for calculation
-    const normalized = cleaned.replace(',', '.');
-    setAmount(normalized);
+    // keep digits, dots, commas
+    let cleaned = text.replace(/[^\d.,]/g, '');
+
+    // if it contains a comma, treat '.' as thousands and drop them
+    if (cleaned.includes(',')) {
+      cleaned = cleaned.replace(/\./g, '');
+      cleaned = cleaned.replace(',', '.');
+    } else {
+      // allow only one dot
+      const parts = cleaned.split('.');
+      if (parts.length > 2) {
+        cleaned = parts[0] + '.' + parts.slice(1).join('');
+      }
+    }
+    setAmount(cleaned);
+  };
+
+  const parseBcbTimestampToDisplay = (dataHoraCotacao) => {
+    // "YYYY-MM-DD HH:mm:ss.SSS"
+    if (!dataHoraCotacao) return { time: '-', date: '-' };
+    const [datePart, timePartRaw] = String(dataHoraCotacao).split(' ');
+    if (!datePart || !timePartRaw) return { time: '-', date: '-' };
+    const [yyyy, mm, dd] = datePart.split('-');
+    const hhmm = timePartRaw.slice(0, 5);
+    return { time: hhmm, date: `${dd}/${mm}/${yyyy}` };
+  };
+
+  // ---------- API Calls ----------
+  const getLatestViaAte = async (untilDateMMDDYYYY) => {
+    const url =
+      `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
+      `CotacaoMoedaAte(moeda=@moeda,dataCotacaoAte=@dataCotacaoAte)` +
+      `?@moeda='CAD'&@dataCotacaoAte='${untilDateMMDDYYYY}'&$top=1&` +
+      `$orderby=dataHoraCotacao%20desc&$format=json`;
+
+    const { data } = await axios.get(url, { timeout: 10000 });
+    const rows = data?.value || [];
+    if (!rows.length) return null;
+    return rows[0]; // { cotacaoVenda, dataHoraCotacao, ... }
+  };
+
+  const getLatestWalkingBack = async (maxDaysBack = 7) => {
+    const today = new Date();
+    for (let i = 0; i <= maxDaysBack; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const mmddyyyy = toMMDDYYYY(d);
+
+      const url =
+        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
+        `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
+        `?@moeda='CAD'&@dataCotacao='${mmddyyyy}'&$top=1&` +
+        `$orderby=dataHoraCotacao%20desc&$format=json`;
+
+      try {
+        const { data } = await axios.get(url, { timeout: 10000 });
+        const rows = data?.value || [];
+        if (rows.length) return rows[0];
+      } catch {
+        // try next day back
+      }
+    }
+    return null;
   };
 
   const fetchLatestRate = async () => {
@@ -46,23 +104,28 @@ export default function CurrencyConverter() {
     setRateDate('');
 
     try {
-      // Ask for the most recent available CAD rate up to *today*
-      const dateParam = todayMMDDYYYY(); // MM-DD-YYYY
-      const url =
-        `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
-        `CotacaoMoedaAte(moeda=@moeda,dataCotacaoAte=@dataCotacaoAte)` +
-        `?@moeda='CAD'&@dataCotacaoAte='${dateParam}'&$top=1&` +
-        `$orderby=dataHoraCotacao%20desc&$format=json`;
+      const today = new Date();
+      const mmddyyyy = toMMDDYYYY(today);
 
-      const resp = await axios.get(url);
-      const rows = resp?.data?.value || [];
+      // 1) Primary: up to *today* (should include Fri if Monday)
+      let row = null;
+      try {
+        row = await getLatestViaAte(mmddyyyy);
+      } catch {
+        // proceed to fallback
+      }
 
-      if (!rows.length) {
+      // 2) Fallback: walk back up to 7 days (handles service glitches)
+      if (!row) {
+        row = await getLatestWalkingBack(7);
+      }
+
+      if (!row) {
         setError('No rate available (PTAX). Try again later.');
         return;
       }
 
-      const { cotacaoVenda, dataHoraCotacao } = rows[0]; // dataHoraCotacao like "2025-08-07 13:10:28.166"
+      const { cotacaoVenda, dataHoraCotacao } = row;
 
       const input = parseFloat(amount);
       if (isNaN(input)) {
@@ -88,22 +151,17 @@ export default function CurrencyConverter() {
       const rightFormatted = formatCurrency(rightValue, rightCcy);
       setResultText(`${leftFormatted} = ${rightFormatted}`);
 
-      // Timestamp handling — show as Brasília time (API already returns BRT)
-      // dataHoraCotacao format: "YYYY-MM-DD HH:mm:ss.SSS"
-      const [datePart, timePartRaw] = String(dataHoraCotacao).split(' ');
-      if (datePart && timePartRaw) {
-        const [yyyy, mm, dd] = datePart.split('-');
-        const hhmm = timePartRaw.slice(0, 5); // HH:mm
-        setRateTime(hhmm);
-        setRateDate(`${dd}/${mm}/${yyyy}`);
-      }
-    } catch (e) {
+      const { time, date } = parseBcbTimestampToDisplay(dataHoraCotacao);
+      setRateTime(time);
+      setRateDate(date);
+    } catch {
       setError('Failed to fetch exchange rate.');
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------- UI ----------
   return (
     <View style={styles.wrap}>
       <TextInput
@@ -140,10 +198,9 @@ export default function CurrencyConverter() {
       {!!resultText && <Text style={styles.result}>{resultText}</Text>}
       {!!error && <Text style={styles.error}>{error}</Text>}
 
-      {/* Rate date block */}
-      {!!(rateTime || rateDate) && (
+      {(rateTime || rateDate) && (
         <View style={styles.rateBlock}>
-          <Text style={styles.rateLabel}>Rate date (Brasília time):</Text>
+          <Text style={styles.rateLabel}>Latest available rate (Brasília time):</Text>
           <Text style={styles.rateTime}>{rateTime || '-'}</Text>
           <Text style={styles.rateDate}>{rateDate || '-'}</Text>
         </View>
