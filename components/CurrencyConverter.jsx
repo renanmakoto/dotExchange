@@ -4,7 +4,7 @@ import axios from 'axios'
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1')
-  const [isCadToBrl, setIsCadToBrl] = useState(true);
+  const [isCadToBrl, setIsCadToBrl] = useState(true)
   const [resultText, setResultText] = useState('');
   const [rateTime, setRateTime] = useState(''); // HH:mm (BRT)
   const [rateDate, setRateDate] = useState(''); // DD/MM/YYYY (BRT)
