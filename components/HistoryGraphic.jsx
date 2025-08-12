@@ -1,53 +1,42 @@
-import React from 'react';
-import { View, Dimensions, StyleSheet } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import React from "react";
+import { View, Dimensions } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 
-const screenWidth = Dimensions.get('window').width;
+export default function HistoryGraphic({ data, labels }) {
+  if (!data?.length) return null;
 
-export default function HistoryGraphic({
-  data = [],           // array of numbers
-  labels = [],         // optional array of strings (same length as data)
-  currencyLabel = '',  // e.g. "R$ " or "CAD "
-  height = 220,
-}) {
   return (
-    <View style={styles.card}>
+    <View style={{ marginTop: 20 }}>
       <LineChart
         data={{
-          labels, // show if provided
+          labels,
           datasets: [{ data }],
         }}
-        width={screenWidth - 32}
-        height={height}
-        yAxisLabel={currencyLabel}
+        width={Dimensions.get("window").width - 24} // small horizontal padding
+        height={240}
+        withInnerLines={false}
         withVerticalLines={false}
-        withInnerLines={true}
-        withDots={true}
-        yLabelsOffset={6}
+        yLabelsOffset={8}
         chartConfig={{
-          backgroundColor: '#2b2b2b',
-          backgroundGradientFrom: '#2b2b2b',
-          backgroundGradientTo: '#2b2b2b',
-          decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,        // axis & line color
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,    // x/y labels
+          backgroundColor: "#000000",
+          backgroundGradientFrom: "#232323",
+          backgroundGradientTo: "#3F3F3F",
+          decimalPlaces: 4, // monthly series usually nicer with 4 decimals
+          color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
+          labelColor: (opacity = 1) => `rgba(255,255,255,${opacity})`,
           propsForDots: {
-            r: '3',
-            strokeWidth: '2',
-            stroke: '#00ADA2', // your accent
-            fill: '#00ADA2',
-          },
-          propsForBackgroundLines: {
-            strokeDasharray: '3 6',
-            strokeOpacity: 0.25,
+            r: "2",
+            strokeWidth: "1",
+            stroke: "#00ADA2",
           },
         }}
         bezier
-        style={styles.chart}
+        style={{ borderRadius: 12 }}
       />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
