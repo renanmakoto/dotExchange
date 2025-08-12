@@ -1,5 +1,5 @@
 import React from "react"
-import { View, Text, Dimensions, StyleSheet } from "react-native";
+import { View, Text, Dimensions, StyleSheet } from "react-native"
 import { LineChart } from "react-native-chart-kit";
 
 const THEME = {
