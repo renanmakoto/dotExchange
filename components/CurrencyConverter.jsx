@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { LineChart } from 'react-native-chart-kit';
@@ -6,7 +6,6 @@ import { LineChart } from 'react-native-chart-kit';
 // --- helpers --------------------------------------------------------------
 
 const toBCBDate = (d) => {
-  // Format MM-DD-YYYY for BCB endpoints
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   const yyyy = d.getFullYear();
@@ -21,29 +20,24 @@ const addDays = (d, delta) => {
 
 const weekdayShortEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Format amounts with locales
 const fmtBRL = (v) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v);
 const fmtCAD = (v) =>
   new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 }).format(v);
 
-// Extract "YYYY-MM-DD HH:mm:ss" parts from BCB `dataHoraCotacao`
 const parseBcbTimestamp = (stamp) => {
-  // Example: "2025-08-07 13:10:28.166"
-  // Treat as Brasília time already; just split
   if (!stamp || typeof stamp !== 'string') return { dateStr: '-', timeStr: '-' };
   const [datePart, timePartRaw] = stamp.split(' ');
   if (!datePart || !timePartRaw) return { dateStr: '-', timeStr: '-' };
   const timeStr = timePartRaw.slice(0, 5); // HH:mm
-  // Convert YYYY-MM-DD to DD/MM/YYYY
   const [y, m, d] = datePart.split('-');
   const dateStr = `${d}/${m}/${y}`;
   return { dateStr, timeStr };
 };
 
-// Pick the *last* quote for each day; if a "Fechamento PTAX" exists for the day, prefer that
+// Choose the daily “close”: prefer Fechamento PTAX; otherwise take the last quote of the day
 const pickDailyClose = (items) => {
-  const byDate = new Map(); // date (YYYY-MM-DD) -> array of items for that day
+  const byDate = new Map();
   items.forEach((it) => {
     const datePart = (it.dataHoraCotacao || '').slice(0, 10);
     if (!datePart) return;
@@ -52,18 +46,14 @@ const pickDailyClose = (items) => {
   });
 
   const perDayLast = [];
-  for (const [date, arr] of Array.from(byDate.entries())) {
-    // prefer Fechamento PTAX; otherwise last item in time order
+  for (const [, arr] of byDate.entries()) {
     const fechamento = arr.find((a) => a.tipoBoletim && a.tipoBoletim.toLowerCase().includes('fechamento'));
     if (fechamento) perDayLast.push(fechamento);
     else {
-      // sort by time asc, take last
       const sorted = arr.slice().sort((a, b) => (a.dataHoraCotacao > b.dataHoraCotacao ? 1 : -1));
       perDayLast.push(sorted[sorted.length - 1]);
     }
   }
-
-  // sort days ascending by date
   perDayLast.sort((a, b) => (a.dataHoraCotacao < b.dataHoraCotacao ? -1 : 1));
   return perDayLast;
 };
@@ -75,23 +65,31 @@ export default function CurrencyConverter() {
   const [isCadToBrl, setIsCadToBrl] = useState(true);
 
   // Latest quote
-  const [latestRate, setLatestRate] = useState(null); // number
-  const [latestStamp, setLatestStamp] = useState(null); // string from API
+  const [latestRate, setLatestRate] = useState(null);
+  const [latestStamp, setLatestStamp] = useState(null);
   const [loadingLatest, setLoadingLatest] = useState(false);
   const [errorLatest, setErrorLatest] = useState('');
 
-  // History
-  const [historyRates, setHistoryRates] = useState([]); // numbers
-  const [historyLabels, setHistoryLabels] = useState([]); // strings (Mon, Tue, ...)
+  // Chart data and visibility
+  const [hasConverted, setHasConverted] = useState(false);
+  const [historyRates, setHistoryRates] = useState([]);
+  const [historyLabels, setHistoryLabels] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [errorHistory, setErrorHistory] = useState('');
 
-  // Convert button handler
+  // Recompute chart when direction changes *after* at least one convert
+  React.useEffect(() => {
+    if (hasConverted) {
+      buildHistory(isCadToBrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCadToBrl]);
+
   const fetchLatestRate = async () => {
     setLoadingLatest(true);
     setErrorLatest('');
     try {
-      // Try from today, fallback up to 7 previous days until we find at least one value
+      // Try from today, fallback up to 7 previous days
       const today = new Date();
       let found = null;
       let foundStamp = null;
@@ -104,7 +102,6 @@ export default function CurrencyConverter() {
         const { data } = await axios.get(url);
         const arr = (data && data.value) || [];
         if (arr.length > 0) {
-          // take the last entry of that day (often Fechamento PTAX or latest intraday)
           const sorted = arr.slice().sort((a, b) => (a.dataHoraCotacao > b.dataHoraCotacao ? 1 : -1));
           const last = sorted[sorted.length - 1];
           found = Number(last.cotacaoVenda);
@@ -117,10 +114,15 @@ export default function CurrencyConverter() {
         setErrorLatest('No rate available.');
         setLatestRate(null);
         setLatestStamp(null);
-      } else {
-        setLatestRate(found);
-        setLatestStamp(foundStamp);
+        return;
       }
+
+      setLatestRate(found);
+      setLatestStamp(foundStamp);
+
+      // First time we show the chart only after Convert
+      setHasConverted(true);
+      await buildHistory(isCadToBrl);
     } catch (e) {
       setErrorLatest('Failed to fetch exchange rate.');
       setLatestRate(null);
@@ -130,52 +132,52 @@ export default function CurrencyConverter() {
     }
   };
 
-  // Fetch history on mount (and you can re-use via a refresh button if you want)
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoadingHistory(true);
-      setErrorHistory('');
-      try {
-        // Last 14 days window to ensure we collect at least 7 business days
-        const end = new Date();
-        const start = addDays(end, -14);
-        const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@ini,dataFinalCotacao=@fim)?@moeda='CAD'&@ini='${toBCBDate(
-          start
-        )}'&@fim='${toBCBDate(end)}'&$format=json`;
+  const buildHistory = async (directionCadToBrl) => {
+    setLoadingHistory(true);
+    setErrorHistory('');
+    try {
+      // Use last 14 days to gather at least 7 business days
+      const end = new Date();
+      const start = addDays(end, -14);
+      const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@ini,dataFinalCotacao=@fim)?@moeda='CAD'&@ini='${toBCBDate(
+        start
+      )}'&@fim='${toBCBDate(end)}'&$format=json`;
 
-        const { data } = await axios.get(url);
-        const arr = (data && data.value) || [];
-
-        if (!arr.length) {
-          setErrorHistory('No history available.');
-          setHistoryRates([]);
-          setHistoryLabels([]);
-          return;
-        }
-
-        const perDay = pickDailyClose(arr); // last quote per date
-        const last7 = perDay.slice(-7); // last 7 days
-        const rates = last7.map((x) => Number(x.cotacaoVenda));
-        const labels = last7.map((x) => {
-          const d = new Date(x.dataHoraCotacao.replace(' ', 'T')); // for weekday only
-          return weekdayShortEn[d.getDay()];
-        });
-
-        setHistoryRates(rates);
-        setHistoryLabels(labels);
-      } catch (e) {
-        setErrorHistory('Failed to fetch history.');
+      const { data } = await axios.get(url);
+      const arr = (data && data.value) || [];
+      if (!arr.length) {
+        setErrorHistory('No history available.');
         setHistoryRates([]);
         setHistoryLabels([]);
-      } finally {
-        setLoadingHistory(false);
+        return;
       }
-    };
 
-    fetchHistory();
-  }, []);
+      const perDay = pickDailyClose(arr);
+      const last7 = perDay.slice(-7);
 
-  // Computed conversion text
+      // CAD->BRL: use rate; BRL->CAD: inverse
+      const rates = last7.map((x) => {
+        const r = Number(x.cotacaoVenda);
+        return directionCadToBrl ? r : (1 / r);
+      });
+
+      const labels = last7.map((x) => {
+        const d = new Date(x.dataHoraCotacao.replace(' ', 'T'));
+        return weekdayShortEn[d.getDay()];
+      });
+
+      setHistoryRates(rates);
+      setHistoryLabels(labels);
+    } catch (e) {
+      setErrorHistory('Failed to fetch history.');
+      setHistoryRates([]);
+      setHistoryLabels([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Conversion line
   const resultText = useMemo(() => {
     if (!latestRate) return '';
     const amt = parseFloat(amount.replace(',', '.'));
@@ -199,6 +201,9 @@ export default function CurrencyConverter() {
 
   // Rate date/time lines
   const { dateStr, timeStr } = useMemo(() => parseBcbTimestamp(latestStamp), [latestStamp]);
+
+  // y-axis label based on direction
+  const yAxisLabel = isCadToBrl ? 'R$ ' : 'C$ ';
 
   return (
     <View style={styles.wrap}>
@@ -240,42 +245,44 @@ export default function CurrencyConverter() {
         </View>
       )}
 
-      {/* History chart */}
-      <View style={{ width: '100%', marginTop: 24 }}>
-        {loadingHistory ? (
-          <ActivityIndicator />
-        ) : errorHistory ? (
-          <Text style={styles.error}>{errorHistory}</Text>
-        ) : historyRates.length ? (
-          <LineChart
-            data={{
-              labels: historyLabels,
-              datasets: [{ data: historyRates }],
-            }}
-            width={Dimensions.get('window').width - 24}
-            height={220}
-            yAxisSuffix=""
-            withVerticalLines={false}
-            yLabelsOffset={6}
-            withVerticalLabels
-            chartConfig={{
-              backgroundColor: '#2b2b2b',
-              backgroundGradientFrom: '#2b2b2b',
-              backgroundGradientTo: '#2b2b2b',
-              decimalPlaces: 4,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              propsForDots: {
-                r: '2.5',
-                strokeWidth: '1',
-                stroke: '#00ADA2',
-              },
-            }}
-            bezier
-            style={styles.chart}
-          />
-        ) : null}
-      </View>
+      {/* History chart — only after user has converted at least once */}
+      {hasConverted && (
+        <View style={{ width: '100%', marginTop: 24 }}>
+          {loadingHistory ? (
+            <ActivityIndicator />
+          ) : errorHistory ? (
+            <Text style={styles.error}>{errorHistory}</Text>
+          ) : historyRates.length ? (
+            <LineChart
+              data={{
+                labels: historyLabels,
+                datasets: [{ data: historyRates }],
+              }}
+              width={Dimensions.get('window').width - 24}
+              height={220}
+              yAxisLabel={yAxisLabel}
+              withVerticalLines={false}
+              yLabelsOffset={6}
+              withVerticalLabels
+              chartConfig={{
+                backgroundColor: '#2b2b2b',
+                backgroundGradientFrom: '#2b2b2b',
+                backgroundGradientTo: '#2b2b2b',
+                decimalPlaces: 4,
+                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                propsForDots: {
+                  r: '2.5',
+                  strokeWidth: '1',
+                  stroke: '#00ADA2',
+                },
+              }}
+              bezier
+              style={styles.chart}
+            />
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
