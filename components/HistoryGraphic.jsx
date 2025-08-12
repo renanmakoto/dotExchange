@@ -20,7 +20,7 @@ export default function HistoryGraphic({
   decimalPlaces = 4,
   yAxisSuffix = "",
 }) {
-  if (!data?.length) return null;
+  if (!data?.length) return null
 
   const width = Dimensions.get("window").width - 24; // small side margin
 
