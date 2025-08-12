@@ -9,7 +9,7 @@ const THEME = {
   textPrimary: "#FFFFFF",
   textMuted: "rgba(255,255,255,0.7)",
   grid: "rgba(255,255,255,0.12)",
-};
+}
 
 export default function HistoryGraphic({
   data,
