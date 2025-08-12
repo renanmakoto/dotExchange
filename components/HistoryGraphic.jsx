@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, Dimensions, StyleSheet } from "react-native"
-import { LineChart } from "react-native-chart-kit";
+import { LineChart } from "react-native-chart-kit"
 
 const THEME = {
   cardBgFrom: "#1C1C1E",
