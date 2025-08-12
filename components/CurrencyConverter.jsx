@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
 import axios from "axios";
-import HistoryGraphic from "./components/HistoryGraphic"; // adjust path if different
+import HistoryGraphic from "./HistoryGraphic"; // same folder
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState("1");
@@ -10,9 +10,9 @@ export default function CurrencyConverter() {
   const [rateDate, setRateDate] = useState("");
   const [isCadToBrl, setIsCadToBrl] = useState(true);
 
-  // chart state
-  const [historyData, setHistoryData] = useState([]); // numbers
-  const [historyLabels, setHistoryLabels] = useState([]); // month labels
+  // monthly chart state (last 12 months)
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLabels, setHistoryLabels] = useState([]);
 
   const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -21,26 +21,37 @@ export default function CurrencyConverter() {
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
-    return `${mm}-${dd}-${yyyy}`;
+    return `${mm}-${dd}-${yyyy}`; // BCB expects MM-DD-YYYY
   };
 
-  const formatMoney = (value, currency) => {
-    const locale = currency === "BRL" ? "pt-BR" : "en-CA";
-    return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
-  };
-
-  const splitDateTimeBR = (isoLike) => {
-    // API gives "YYYY-MM-DD HH:mm:ss.SSS"
-    const [datePart, timePartRaw] = isoLike.split(" ");
+  const splitDateTimeBR = (stamp) => {
+    // API example: "2025-08-07 13:10:28.166"
+    const [datePart, timePartRaw] = stamp.split(" ");
+    if (!datePart || !timePartRaw) return { niceDate: "-", niceTime: "-" };
     const [y, m, d] = datePart.split("-");
-    const timePart = timePartRaw?.split(".")[0] ?? "";
-    const niceDate = `${d}/${m}/${y}`;
-    return { niceDate, niceTime: timePart };
+    const timePart = timePartRaw.split(".")[0];
+    return { niceDate: `${d}/${m}/${y}`, niceTime: timePart };
   };
 
-  // Build monthly history (last 12 months)
+  // Last business day used by PTAX (Brazil/UTC-3 ~ ready after ~13:10 BRT / 16:10 UTC)
+  const getLastBusinessDay = () => {
+    const d = new Date();
+
+    // If before ~16:10 UTC, use previous day
+    const utcHour = d.getUTCHours();
+    if (utcHour < 16) d.setDate(d.getDate() - 1);
+
+    // If weekend, push back to Friday
+    const day = d.getDay(); // 0 Sun, 6 Sat
+    if (day === 0) d.setDate(d.getDate() - 2); // Sun -> Fri
+    else if (day === 6) d.setDate(d.getDate() - 1); // Sat -> Fri
+
+    return toBCBDate(d);
+  };
+
+  // Build monthly history (last 12 months), direction-aware
   const buildMonthlyHistory = async () => {
-    // fetch ~400 days to be safe
+    // fetch ~400 days for safety (covers 12+ months of business days)
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - 400);
@@ -57,27 +68,24 @@ export default function CurrencyConverter() {
     const rows = data?.value ?? [];
     if (!rows.length) return { points: [], labels: [] };
 
-    // Keep the latest quote per calendar day (by dataHoraCotacao)
-    const byDay = new Map(); // key: YYYY-MM-DD -> row
+    // Latest quote per day
+    const byDay = new Map(); // YYYY-MM-DD -> row
     for (const row of rows) {
       const [datePart] = row.dataHoraCotacao.split(" ");
-      const current = byDay.get(datePart);
-      if (!current || row.dataHoraCotacao > current.dataHoraCotacao) {
+      const cur = byDay.get(datePart);
+      if (!cur || row.dataHoraCotacao > cur.dataHoraCotacao) {
         byDay.set(datePart, row);
       }
     }
 
-    // Group by month and keep the last day (closing of the month)
-    const byMonth = new Map(); // key: YYYY-MM -> { date: 'YYYY-MM-DD', row }
+    // Last available day per month (closing)
+    const byMonth = new Map(); // YYYY-MM -> { date, row }
     for (const [datePart, row] of byDay.entries()) {
       const ym = datePart.slice(0, 7); // YYYY-MM
-      const stored = byMonth.get(ym);
-      if (!stored || datePart > stored.date) {
-        byMonth.set(ym, { date: datePart, row });
-      }
+      const saved = byMonth.get(ym);
+      if (!saved || datePart > saved.date) byMonth.set(ym, { date: datePart, row });
     }
 
-    // Sort months ascending and take the last 12
     const monthsSorted = Array.from(byMonth.keys()).sort();
     const last12 = monthsSorted.slice(-12);
 
@@ -86,43 +94,25 @@ export default function CurrencyConverter() {
 
     for (const ym of last12) {
       const { row } = byMonth.get(ym);
-      // CAD->BRL uses cotacaoVenda; BRL->CAD uses reciprocal
-      const base = Number(row.cotacaoVenda);
-      const value = isCadToBrl ? base : (base ? 1 / base : 0);
-      points.push(Number(value.toFixed(4)));
+      const base = Number(row.cotacaoVenda); // CAD->BRL base
+      const val = isCadToBrl ? base : (base ? 1 / base : 0);
+      points.push(Number(val.toFixed(4)));
 
-      // Label like "Aug", "Sep", ...
-      const [year, month] = ym.split("-");
+      const [, month] = ym.split("-");
       labels.push(monthShort[Number(month) - 1]);
     }
 
     return { points, labels };
   };
 
-  // Use last business day logic for single conversion
-  const getLastBusinessDay = () => {
-    const today = new Date();
-
-    // if weekend, go back to Friday
-    const day = today.getDay(); // Sun=0..Sat=6
-    if (day === 0) today.setDate(today.getDate() - 2);
-    else if (day === 6) today.setDate(today.getDate() - 1);
-
-    // If before ~1pm Brasília (UTC-3, i.e., before 16:00 UTC), use yesterday
-    const utcHour = new Date().getUTCHours();
-    if (utcHour < 16) today.setDate(today.getDate() - 1);
-
-    return toBCBDate(today);
-  };
-
   const fetchExchangeRate = async () => {
     try {
-      // 1) convert current amount
+      // 1) latest single rate for conversion
       const d = getLastBusinessDay();
       const url =
         `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
-        `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
-        `?@moeda='CAD'&@dataCotacao='${d}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`;
+        `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@data)` +
+        `?@moeda='CAD'&@data='${d}'&$top=1&$orderby=dataHoraCotacao desc&$format=json`;
 
       const { data } = await axios.get(url);
       const value = data?.value ?? [];
@@ -136,8 +126,9 @@ export default function CurrencyConverter() {
       }
 
       const rate = Number(value[0].cotacaoVenda);
-      // compute conversion
-      const amt = parseFloat(amount.replace(",", "."));
+      const raw = (amount || "").toString().replace(/\s/g, "").replace(",", ".");
+      const amt = parseFloat(raw);
+
       if (Number.isNaN(amt)) {
         setResult("Enter a valid number.");
         return;
@@ -155,12 +146,11 @@ export default function CurrencyConverter() {
 
       setResult(`${leftStr} = ${rightStr}`);
 
-      // Rate date/time (Brasília time, as provided by API)
       const { niceDate, niceTime } = splitDateTimeBR(value[0].dataHoraCotacao);
       setRateDate(niceDate);
       setRateTime(niceTime);
 
-      // 2) build monthly history matching the direction
+      // 2) monthly series (direction-aware)
       const monthly = await buildMonthlyHistory();
       setHistoryData(monthly.points);
       setHistoryLabels(monthly.labels);
@@ -199,14 +189,12 @@ export default function CurrencyConverter() {
 
       {result ? <Text style={styles.result}>{result}</Text> : null}
 
-      {/* Rate date/time block */}
       <View style={styles.rateBlock}>
         <Text style={styles.rateTitle}>Rate date (Brasília):</Text>
         <Text style={styles.rateTime}>{rateTime || "-"}</Text>
         <Text style={styles.rateDate}>{rateDate || "-"}</Text>
       </View>
 
-      {/* Monthly chart appears only after first successful fetch */}
       {historyData.length > 0 && (
         <HistoryGraphic data={historyData} labels={historyLabels} />
       )}
@@ -252,7 +240,7 @@ const styles = StyleSheet.create({
   rateTitle: {
     color: "white",
     fontSize: 14,
-    opacity: 0.8,
+    opacity: 0.85,
     marginBottom: 6,
   },
   rateTime: {
