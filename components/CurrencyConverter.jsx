@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from "react-native"
 import axios from "axios"
-import HistoryGraphic from "./HistoryGraphic"; // same folder
+import HistoryGraphic from "./HistoryGraphic"
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState("1");
