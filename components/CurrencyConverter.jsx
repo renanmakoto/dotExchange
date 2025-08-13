@@ -11,7 +11,7 @@ export default function CurrencyConverter() {
   const [isCadToBrl, setIsCadToBrl] = useState(true)
 
   const [historyData, setHistoryData] = useState([])
-  const [historyLabels, setHistoryLabels] = useState([]);
+  const [historyLabels, setHistoryLabels] = useState([])
 
   const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
