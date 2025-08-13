@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
+import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from "react-native"
 import axios from "axios";
 import HistoryGraphic from "./HistoryGraphic"; // same folder
 
