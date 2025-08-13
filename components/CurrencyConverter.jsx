@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { View, TextInput, Text, Button, StyleSheet, TouchableOpacity } from "react-native"
-import axios from "axios";
+import axios from "axios"
 import HistoryGraphic from "./HistoryGraphic"; // same folder
 
 export default function CurrencyConverter() {
