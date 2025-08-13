@@ -8,7 +8,7 @@ export default function CurrencyConverter() {
   const [result, setResult] = useState(null)
   const [rateTime, setRateTime] = useState("")
   const [rateDate, setRateDate] = useState("")
-  const [isCadToBrl, setIsCadToBrl] = useState(true);
+  const [isCadToBrl, setIsCadToBrl] = useState(true)
 
   // monthly chart state (last 12 months)
   const [historyData, setHistoryData] = useState([]);
