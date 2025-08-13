@@ -10,7 +10,6 @@ export default function CurrencyConverter() {
   const [rateDate, setRateDate] = useState("")
   const [isCadToBrl, setIsCadToBrl] = useState(true)
 
-  // monthly chart state (last 12 months)
   const [historyData, setHistoryData] = useState([]);
   const [historyLabels, setHistoryLabels] = useState([]);
 
