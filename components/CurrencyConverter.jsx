@@ -5,7 +5,7 @@ import HistoryGraphic from "./HistoryGraphic"
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState("1")
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(null)
   const [rateTime, setRateTime] = useState("");
   const [rateDate, setRateDate] = useState("");
   const [isCadToBrl, setIsCadToBrl] = useState(true);
