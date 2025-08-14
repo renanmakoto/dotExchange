@@ -25,7 +25,7 @@ export default function CurrencyConverter() {
   const splitDateTimeBR = (stamp) => {
     const [datePart, timePartRaw] = stamp.split(" ")
     if (!datePart || !timePartRaw) return { niceDate: "-", niceTime: "-" }
-    const [y, m, d] = datePart.split("-");
+    const [y, m, d] = datePart.split("-")
     const timePart = timePartRaw.split(".")[0];
     return { niceDate: `${d}/${m}/${y}`, niceTime: timePart };
   };
