@@ -16,7 +16,7 @@ export default function CurrencyConverter() {
   const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
   const toBCBDate = (d) => {
-    const dd = String(d.getDate()).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0")
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     return `${mm}-${dd}-${yyyy}`; // BCB expects MM-DD-YYYY
