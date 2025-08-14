@@ -23,7 +23,6 @@ export default function CurrencyConverter() {
   }
 
   const splitDateTimeBR = (stamp) => {
-    // API example: "2025-08-07 13:10:28.166"
     const [datePart, timePartRaw] = stamp.split(" ");
     if (!datePart || !timePartRaw) return { niceDate: "-", niceTime: "-" };
     const [y, m, d] = datePart.split("-");
