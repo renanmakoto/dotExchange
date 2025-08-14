@@ -20,7 +20,7 @@ export default function CurrencyConverter() {
     const mm = String(d.getMonth() + 1).padStart(2, "0")
     const yyyy = d.getFullYear()
     return `${mm}-${dd}-${yyyy}`
-  };
+  }
 
   const splitDateTimeBR = (stamp) => {
     // API example: "2025-08-07 13:10:28.166"
