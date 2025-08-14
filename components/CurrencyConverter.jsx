@@ -27,7 +27,7 @@ export default function CurrencyConverter() {
     if (!datePart || !timePartRaw) return { niceDate: "-", niceTime: "-" }
     const [y, m, d] = datePart.split("-")
     const timePart = timePartRaw.split(".")[0]
-    return { niceDate: `${d}/${m}/${y}`, niceTime: timePart };
+    return { niceDate: `${d}/${m}/${y}`, niceTime: timePart }
   };
 
   // Last business day used by PTAX (Brazil/UTC-3 ~ ready after ~13:10 BRT / 16:10 UTC)
