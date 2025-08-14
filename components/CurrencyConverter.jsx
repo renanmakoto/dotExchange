@@ -13,9 +13,8 @@ export default function CurrencyConverter() {
   const [historyData, setHistoryData] = useState([])
   const [historyLabels, setHistoryLabels] = useState([])
 
-  const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
-  // Helpers
   const toBCBDate = (d) => {
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
