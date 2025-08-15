@@ -33,7 +33,7 @@ export default function CurrencyConverter() {
   const getLastBusinessDay = () => {
     const d = new Date()
 
-    const utcHour = d.getUTCHours();
+    const utcHour = d.getUTCHours()
     if (utcHour < 16) d.setDate(d.getDate() - 1)
 
     // If weekend, push back to Friday
