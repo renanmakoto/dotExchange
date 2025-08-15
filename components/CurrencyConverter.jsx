@@ -36,7 +36,7 @@ export default function CurrencyConverter() {
     const utcHour = d.getUTCHours()
     if (utcHour < 16) d.setDate(d.getDate() - 1)
 
-    const day = d.getDay(); // 0 Sun, 6 Sat
+    const day = d.getDay()
     if (day === 0) d.setDate(d.getDate() - 2); // Sun -> Fri
     else if (day === 6) d.setDate(d.getDate() - 1); // Sat -> Fri
 
