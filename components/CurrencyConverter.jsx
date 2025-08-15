@@ -30,7 +30,6 @@ export default function CurrencyConverter() {
     return { niceDate: `${d}/${m}/${y}`, niceTime: timePart }
   }
 
-  
   const getLastBusinessDay = () => {
     const d = new Date();
 
