@@ -33,7 +33,6 @@ export default function CurrencyConverter() {
   const getLastBusinessDay = () => {
     const d = new Date()
 
-    // If before ~16:10 UTC, use previous day
     const utcHour = d.getUTCHours();
     if (utcHour < 16) d.setDate(d.getDate() - 1);
 
