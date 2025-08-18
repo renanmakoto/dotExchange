@@ -58,7 +58,7 @@ export default function CurrencyConverter() {
 
     const { data } = await axios.get(url)
     const rows = data?.value ?? []
-    if (!rows.length) return { points: [], labels: [] };
+    if (!rows.length) return { points: [], labels: [] }
 
     // Latest quote per day
     const byDay = new Map(); // YYYY-MM-DD -> row
