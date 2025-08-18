@@ -44,7 +44,6 @@ export default function CurrencyConverter() {
   }
 
   const buildMonthlyHistory = async () => {
-    // fetch ~400 days for safety (covers 12+ months of business days)
     const end = new Date();
     const start = new Date();
     start.setDate(start.getDate() - 400);
