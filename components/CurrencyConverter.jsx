@@ -38,7 +38,7 @@ export default function CurrencyConverter() {
 
     const day = d.getDay()
     if (day === 0) d.setDate(d.getDate() - 2)
-    else if (day === 6) d.setDate(d.getDate() - 1); // Sat -> Fri
+    else if (day === 6) d.setDate(d.getDate() - 1)
 
     return toBCBDate(d);
   };
