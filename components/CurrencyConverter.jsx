@@ -56,7 +56,7 @@ export default function CurrencyConverter() {
       `CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@ini,dataFinalCotacao=@fim)` +
       `?@moeda='CAD'&@ini='${dataInicial}'&@fim='${dataFinal}'&$format=json`
 
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url)
     const rows = data?.value ?? [];
     if (!rows.length) return { points: [], labels: [] };
 
