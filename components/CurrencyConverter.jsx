@@ -54,7 +54,7 @@ export default function CurrencyConverter() {
     const url =
       `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
       `CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@ini,dataFinalCotacao=@fim)` +
-      `?@moeda='CAD'&@ini='${dataInicial}'&@fim='${dataFinal}'&$format=json`;
+      `?@moeda='CAD'&@ini='${dataInicial}'&@fim='${dataFinal}'&$format=json`
 
     const { data } = await axios.get(url);
     const rows = data?.value ?? [];
