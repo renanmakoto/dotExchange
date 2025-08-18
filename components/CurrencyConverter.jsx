@@ -40,8 +40,8 @@ export default function CurrencyConverter() {
     if (day === 0) d.setDate(d.getDate() - 2)
     else if (day === 6) d.setDate(d.getDate() - 1)
 
-    return toBCBDate(d);
-  };
+    return toBCBDate(d)
+  }
 
   // Build monthly history (last 12 months), direction-aware
   const buildMonthlyHistory = async () => {
