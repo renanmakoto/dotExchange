@@ -49,7 +49,7 @@ export default function CurrencyConverter() {
     start.setDate(start.getDate() - 400)
 
     const dataInicial = toBCBDate(start)
-    const dataFinal = toBCBDate(end);
+    const dataFinal = toBCBDate(end)
 
     const url =
       `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
