@@ -43,7 +43,6 @@ export default function CurrencyConverter() {
     return toBCBDate(d)
   }
 
-  // Build monthly history (last 12 months), direction-aware
   const buildMonthlyHistory = async () => {
     // fetch ~400 days for safety (covers 12+ months of business days)
     const end = new Date();
