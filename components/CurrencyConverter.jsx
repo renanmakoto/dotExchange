@@ -57,7 +57,7 @@ export default function CurrencyConverter() {
       `?@moeda='CAD'&@ini='${dataInicial}'&@fim='${dataFinal}'&$format=json`
 
     const { data } = await axios.get(url)
-    const rows = data?.value ?? [];
+    const rows = data?.value ?? []
     if (!rows.length) return { points: [], labels: [] };
 
     // Latest quote per day
