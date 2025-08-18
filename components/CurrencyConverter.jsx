@@ -48,7 +48,7 @@ export default function CurrencyConverter() {
     const start = new Date()
     start.setDate(start.getDate() - 400)
 
-    const dataInicial = toBCBDate(start);
+    const dataInicial = toBCBDate(start)
     const dataFinal = toBCBDate(end);
 
     const url =
