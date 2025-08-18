@@ -45,7 +45,7 @@ export default function CurrencyConverter() {
 
   const buildMonthlyHistory = async () => {
     const end = new Date()
-    const start = new Date();
+    const start = new Date()
     start.setDate(start.getDate() - 400);
 
     const dataInicial = toBCBDate(start);
