@@ -22,7 +22,7 @@ export default function HistoryGraphic({
 }) {
   if (!data?.length) return null
 
-  const width = Dimensions.get("window").width - 24; // small side margin
+  const width = Dimensions.get("window").width - 24
 
   return (
     <View style={styles.wrapper}>
