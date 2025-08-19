@@ -120,4 +120,4 @@ const styles = StyleSheet.create({
     color: THEME.textMuted,
     fontSize: 12,
   },
-});
+})
