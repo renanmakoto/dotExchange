@@ -60,7 +60,7 @@ export default function CurrencyConverter() {
     const rows = data?.value ?? []
     if (!rows.length) return { points: [], labels: [] }
 
-    const byDay = new Map(); // YYYY-MM-DD -> row
+    const byDay = new Map(); 
     for (const row of rows) {
       const [datePart] = row.dataHoraCotacao.split(" ");
       const cur = byDay.get(datePart);
