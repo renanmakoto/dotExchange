@@ -69,7 +69,7 @@ export default function CurrencyConverter() {
       }
     }
 
-    // Last available day per month (closing)
+    
     const byMonth = new Map(); // YYYY-MM -> { date, row }
     for (const [datePart, row] of byDay.entries()) {
       const ym = datePart.slice(0, 7); // YYYY-MM
