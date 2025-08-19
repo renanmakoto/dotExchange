@@ -65,7 +65,7 @@ export default function CurrencyConverter() {
       const [datePart] = row.dataHoraCotacao.split(" ")
       const cur = byDay.get(datePart)
       if (!cur || row.dataHoraCotacao > cur.dataHoraCotacao) {
-        byDay.set(datePart, row);
+        byDay.set(datePart, row)
       }
     }
 
