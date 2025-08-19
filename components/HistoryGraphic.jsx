@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 14,
     backgroundColor: THEME.cardBgFrom,
-    // soft shadow
     shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 10,
