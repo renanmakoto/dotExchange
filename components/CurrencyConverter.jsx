@@ -62,7 +62,7 @@ export default function CurrencyConverter() {
 
     const byDay = new Map()
     for (const row of rows) {
-      const [datePart] = row.dataHoraCotacao.split(" ");
+      const [datePart] = row.dataHoraCotacao.split(" ")
       const cur = byDay.get(datePart);
       if (!cur || row.dataHoraCotacao > cur.dataHoraCotacao) {
         byDay.set(datePart, row);
