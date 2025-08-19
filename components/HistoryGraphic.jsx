@@ -68,7 +68,7 @@ export default function HistoryGraphic({
         <Text style={styles.legendText}>Exchange rate</Text>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
