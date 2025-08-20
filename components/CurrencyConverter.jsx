@@ -70,7 +70,7 @@ export default function CurrencyConverter() {
     }
 
     
-    const byMonth = new Map();
+    const byMonth = new Map()
     for (const [datePart, row] of byDay.entries()) {
       const ym = datePart.slice(0, 7); // YYYY-MM
       const saved = byMonth.get(ym);
