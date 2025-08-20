@@ -78,7 +78,7 @@ export default function CurrencyConverter() {
     }
 
     const monthsSorted = Array.from(byMonth.keys()).sort()
-    const last12 = monthsSorted.slice(-12);
+    const last12 = monthsSorted.slice(-12)
 
     const labels = [];
     const points = [];
