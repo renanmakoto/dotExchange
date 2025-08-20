@@ -81,7 +81,7 @@ export default function CurrencyConverter() {
     const last12 = monthsSorted.slice(-12)
 
     const labels = []
-    const points = [];
+    const points = []
 
     for (const ym of last12) {
       const { row } = byMonth.get(ym);
