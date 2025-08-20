@@ -85,7 +85,7 @@ export default function CurrencyConverter() {
 
     for (const ym of last12) {
       const { row } = byMonth.get(ym)
-      const base = Number(row.cotacaoVenda); 
+      const base = Number(row.cotacaoVenda)
       const val = isCadToBrl ? base : (base ? 1 / base : 0);
       points.push(Number(val.toFixed(4)));
 
