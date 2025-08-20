@@ -77,7 +77,7 @@ export default function CurrencyConverter() {
       if (!saved || datePart > saved.date) byMonth.set(ym, { date: datePart, row })
     }
 
-    const monthsSorted = Array.from(byMonth.keys()).sort();
+    const monthsSorted = Array.from(byMonth.keys()).sort()
     const last12 = monthsSorted.slice(-12);
 
     const labels = [];
