@@ -138,7 +138,34 @@ async function fetchBcbPair(base, quote) {
   throw new Error('No PTAX data within 7 days');
 }
 
-// B) General fiat via Frankfurter (primary) → exchangerate.host (fallback)
+/** ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
+async function fetchEcbDailyCross(base, quote) {
+  const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
+  const { data: xml } = await httpFast.get(url, { responseType: 'text' });
+
+  const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/);
+  const date = timeMatch ? timeMatch[1] : null;
+
+  const rates = {};
+  rates['EUR'] = 1.0;
+
+  const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
+  let m;
+  while ((m = rx.exec(xml)) !== null) {
+    rates[m[1]] = parseFloat(m[2]);
+  }
+
+  if (!rates[base] && base !== 'EUR') throw new Error(`ECB has no ${base} quote`);
+  if (!rates[quote] && quote !== 'EUR') throw new Error(`ECB has no ${quote} quote`);
+
+  const eurToBase = base === 'EUR' ? 1 : rates[base];
+  const eurToQuote = quote === 'EUR' ? 1 : rates[quote];
+  const rate = eurToQuote / eurToBase;
+
+  return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
+}
+
+// Frankfurter / exchangerate.host for historical & fallback (unchanged)
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   try {
     if (dateStr) {
@@ -177,24 +204,49 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   }
 }
 
-// C) BTC via CoinDesk (primary) → CoinGecko (fallback) + fiat cross
+/* ======== BTC: CoinGecko → Coinbase → CoinDesk (last) ======== */
 async function fetchBtcUsd() {
+  // 1) CoinGecko (robust in RN)
+  try {
+    const { data } = await httpFast.get(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
+    );
+    const usd = data?.bitcoin?.usd;
+    const tsSec = data?.bitcoin?.last_updated_at;
+    if (usd) {
+      const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
+      return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' };
+    }
+    throw new Error('No CoinGecko BTC/USD');
+  } catch (e) {
+    console.log('[CoinGecko failed]', e?.message || e);
+  }
+
+  // 2) Coinbase public (no auth). Gives BTC→fiat table; pick USD.
+  try {
+    const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+    const usd = data?.data?.rates?.USD ? 1 / parseFloat(data.data.rates.USD) : null; // rates table is fiat per 1 BTC? Actually BTC base → USD rate is rates.USD (fiat per base). So usdPerBtc = rates.USD
+    const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null;
+    if (usdPerBtc) {
+      const tsISO = new Date().toISOString(); // Coinbase endpoint doesn’t return timestamp; use now
+      return { usdPerBtc, timestampUTC: tsISO, hasTime: true, source: 'Coinbase' };
+    }
+    throw new Error('No Coinbase BTC/USD');
+  } catch (e) {
+    console.log('[Coinbase failed]', e?.message || e);
+  }
+
+  // 3) CoinDesk (last resort)
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json');
     const usdPerBtc = data?.bpi?.USD?.rate_float;
     const tsISO = data?.time?.updatedISO;
     if (!usdPerBtc) throw new Error('No CoinDesk BTC/USD');
-    return { usdPerBtc, timestampUTC: tsISO, hasTime: true, source: 'CoinDesk' };
+    return { usdPerBtc, timestampUTC: tsISO || new Date().toISOString(), hasTime: true, source: 'CoinDesk' };
   } catch (e) {
     console.log('[CoinDesk failed]', e?.message || e);
+    throw new Error('No BTC/USD available from any source');
   }
-
-  const { data } = await httpFast.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true');
-  const usd = data?.bitcoin?.usd;
-  const tsSec = data?.bitcoin?.last_updated_at;
-  if (!usd) throw new Error('No CoinGecko BTC/USD');
-  const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
-  return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' };
 }
 
 async function fetchBtcCross(base, quote) {
@@ -205,11 +257,11 @@ async function fetchBtcCross(base, quote) {
   if (base === 'USD' && quote === 'BTC') return { rate: 1 / usdPerBtc, timestampUTC, hasTime, source };
 
   if (base === 'BTC') {
-    const { rate: usdToQuote } = await fetchFiatRate('USD', quote, null);
+    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote); // official cross
     return { rate: usdPerBtc * usdToQuote, timestampUTC, hasTime, source };
   }
   if (quote === 'BTC') {
-    const { rate: baseToUsd } = await fetchFiatRate(base, 'USD', null);
+    const { rate: baseToUsd } = await fetchEcbDailyCross(base, 'USD'); // official cross
     return { rate: baseToUsd / usdPerBtc, timestampUTC, hasTime, source };
   }
   throw new Error('Unsupported BTC pair');
@@ -220,23 +272,26 @@ async function fetchAnyRate(base, quote) {
   if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' };
   const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c);
 
+  // BTC involved
   if (base === 'BTC' || quote === 'BTC') {
     return fetchBtcCross(base, quote);
   }
 
+  // BRL pair → try PTAX first, then ECB daily (official)
   if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
     try {
       return await fetchBcbPair(base, quote);
     } catch (e) {
-      console.log('[PTAX failed, will fallback]', e?.message || e);
-      return fetchFiatRate(base, quote, null);
+      console.log('[PTAX failed, will fallback to ECB]', e?.message || e);
+      return fetchEcbDailyCross(base, quote);
     }
   }
 
-  return fetchFiatRate(base, quote, null);
+  // any other fiat pair → ECB daily (official)
+  return fetchEcbDailyCross(base, quote);
 }
 
-// E) Monthly series (12 month-end points)
+// E) Monthly series (12 month-end points) — keep your Frankfurter-based series so UI stays identical
 async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds();
   const labels = monthEnds.map((d) =>
@@ -250,7 +305,7 @@ async function fetchMonthlySeries(base, quote) {
       if (base === 'BTC' || quote === 'BTC') {
         const { usdPerBtc } = await fetchBtcUsd();
         if (base === 'BTC' && quote !== 'USD') {
-          const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr);
+          const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr); // historical via Frankfurter
           series.push(usdPerBtc * usdToQuote);
         } else if (quote === 'BTC' && base !== 'USD') {
           const { rate: baseToUsd } = await fetchFiatRate(base, 'USD', dayStr);
@@ -261,7 +316,7 @@ async function fetchMonthlySeries(base, quote) {
           series.push(1 / usdPerBtc);
         }
       } else {
-        const { rate } = await fetchFiatRate(base, quote, dayStr);
+        const { rate } = await fetchFiatRate(base, quote, dayStr); // historical via Frankfurter
         series.push(rate);
       }
     } catch (e) {
@@ -327,7 +382,7 @@ export default function CurrencyConverter() {
     setGraphData([]);
     setGraphLabels([]);
 
-    // ❗ Same-currency guard (your requested feature)
+    // ❗ Same-currency guard
     if (from === to) {
       setLoading(false);
       setErrorMsg('Please pick two different currencies for conversion.');
