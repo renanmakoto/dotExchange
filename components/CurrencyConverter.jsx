@@ -1,4 +1,4 @@
-// components/converter/CurrencyConverter.jsx
+
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
