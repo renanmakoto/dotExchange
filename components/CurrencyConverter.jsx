@@ -225,7 +225,6 @@ async function fetchBtcUsd() {
   // 2) Coinbase public (no auth). Gives BTC→fiat table; pick USD.
   try {
     const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
-    const usd = data?.data?.rates?.USD ? 1 / parseFloat(data.data.rates.USD) : null; // rates table is fiat per 1 BTC? Actually BTC base → USD rate is rates.USD (fiat per base). So usdPerBtc = rates.USD
     const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null;
     if (usdPerBtc) {
       const tsISO = new Date().toISOString(); // Coinbase endpoint doesn’t return timestamp; use now
@@ -291,7 +290,7 @@ async function fetchAnyRate(base, quote) {
   return fetchEcbDailyCross(base, quote);
 }
 
-// E) Monthly series (12 month-end points) — keep your Frankfurter-based series so UI stays identical
+// E) Monthly series (12 month-end points)
 async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds();
   const labels = monthEnds.map((d) =>
@@ -346,6 +345,7 @@ export default function CurrencyConverter() {
   const [graphData, setGraphData] = useState([]);
   const [graphLabels, setGraphLabels] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingGraph, setLoadingGraph] = useState(false); // 👈 NEW
   const [errorMsg, setErrorMsg] = useState('');
 
   const locationSuffix = useMemo(() => {
@@ -375,6 +375,7 @@ export default function CurrencyConverter() {
   // ---------- Convert handler ----------
   const handleConvert = async () => {
     setLoading(true);
+    setLoadingGraph(false);     // reset graph flag
     setErrorMsg('');
     setConvertedText('');
     setRateTimestampUTC('');
@@ -412,11 +413,13 @@ export default function CurrencyConverter() {
       console.log('[Spot conversion failed]', from, to, e?.message || e);
       setErrorMsg('Failed to fetch exchange rate.');
       setLoading(false);
+      setLoadingGraph(false);
       return;
     }
 
     // 2) Monthly series (12 months). Doesn’t block the result if it fails.
     try {
+      setLoadingGraph(true); // 👈 show "Generating graph..."
       const { labels, series, allZero } = await fetchMonthlySeries(from, to);
       if (allZero) {
         const { rate } = await fetchAnyRate(from, to);
@@ -431,6 +434,7 @@ export default function CurrencyConverter() {
       console.log('[Graph series failed]', from, to, e?.message || e);
     } finally {
       setLoading(false);
+      setLoadingGraph(false); // 👈 hide message
     }
   };
 
@@ -491,7 +495,14 @@ export default function CurrencyConverter() {
       )}
 
       {/* Graph (12 months) */}
-      {graphData.length > 0 && (
+      {loadingGraph && (
+        <View style={styles.graphCard}>
+          <Text style={styles.graphTitle}>Last 12 months</Text>
+          <Text style={styles.graphLoading}>Generating graph…</Text>
+        </View>
+      )}
+
+      {!loadingGraph && graphData.length > 0 && (
         <View style={styles.graphCard}>
           <Text style={styles.graphTitle}>Last 12 months</Text>
           <LineChart
@@ -654,6 +665,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 8,
+  },
+  graphLoading: {            // 👈 NEW (subtle, matches your theme)
+    color: '#9aa0a6',
+    fontSize: 14,
+    marginTop: 6,
   },
   modalBackdrop: {
     flex: 1,
