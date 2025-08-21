@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  Modal, FlatList, Pressable, Dimensions
+  Modal, FlatList, Pressable, Dimensions, Vibration
 } from 'react-native';
 import axios from 'axios';
 import { LineChart } from 'react-native-chart-kit';
@@ -37,7 +37,6 @@ const httpFast = axios.create({ timeout: 8000 }); // 8s
 // ---- formatting helpers ----
 function formatAmount(value, currency) {
   try {
-    // For display: BRL uses pt-BR comma decimals, USD/CAD/EUR use en, BTC 8 dp
     const isBTC = currency === 'BTC';
     const locale =
       currency === 'BRL' ? 'pt-BR' :
@@ -53,10 +52,8 @@ function formatAmount(value, currency) {
 }
 
 function parseTimestampParts(utcString) {
-  // Returns safely parsable time/date strings or '-' if not available.
   if (!utcString) return { timeStr: '-', dateStr: '-' };
   let d;
-  // Accept "YYYY-MM-DD HH:mm:ss" from BCB, or ISO strings
   if (utcString.includes(' ') && !utcString.endsWith('Z')) {
     const iso = utcString.replace(' ', 'T') + 'Z';
     d = new Date(iso);
@@ -105,12 +102,12 @@ function lastTwelveMonthEnds() {
 
 // A) PTAX (BCB) for BRL pairs with rollback up to 7 days
 async function fetchBcbPair(base, quote) {
-  const foreign = base === 'BRL' ? quote : base; // PTAX returns BRL per 'foreign'
+  const foreign = base === 'BRL' ? quote : base;
   let attempts = 0;
-  let day = new Date(); // start from "today", then walk back
+  let day = new Date();
 
   while (attempts < 7) {
-    const bcbDate = mmddyyyy(day); // MM-DD-YYYY
+    const bcbDate = mmddyyyy(day);
     const url =
       `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
       `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
@@ -120,7 +117,6 @@ async function fetchBcbPair(base, quote) {
       const { data } = await http.get(url);
       const arr = data?.value ?? [];
       if (arr.length) {
-        // pick most recent item of the day
         const latest = arr[0];
         const brlPerForeign = latest.cotacaoVenda;
         const ts = latest.dataHoraCotacao; // "YYYY-MM-DD HH:mm:ss"
@@ -133,10 +129,9 @@ async function fetchBcbPair(base, quote) {
         throw new Error('Unsupported PTAX pair');
       }
     } catch (e) {
-      // network errors just roll back date as well
+      // ignore and roll back date
     }
 
-    // go back 1 day and try again
     day.setDate(day.getDate() - 1);
     attempts++;
   }
@@ -145,7 +140,6 @@ async function fetchBcbPair(base, quote) {
 
 // B) General fiat via Frankfurter (primary) → exchangerate.host (fallback)
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
-  // Frankfurter primary
   try {
     if (dateStr) {
       const url = `https://api.frankfurter.app/${dateStr}?from=${base}&to=${quote}`;
@@ -164,16 +158,13 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
     console.log('[Frankfurter failed]', e?.message || e);
   }
 
-  // exchangerate.host fallback
   try {
     if (dateStr) {
-      // historical convert
       const url = `https://api.exchangerate.host/convert?from=${base}&to=${quote}&date=${dateStr}`;
       const { data } = await http.get(url);
       if (!data?.result) throw new Error('No result from exchangerate.host');
       return { rate: data.result, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' };
     } else {
-      // latest
       const url = `https://api.exchangerate.host/latest?base=${base}&symbols=${quote}`;
       const { data } = await http.get(url);
       const rate = data?.rates?.[quote];
@@ -188,7 +179,6 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
 
 // C) BTC via CoinDesk (primary) → CoinGecko (fallback) + fiat cross
 async function fetchBtcUsd() {
-  // CoinDesk primary
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json');
     const usdPerBtc = data?.bpi?.USD?.rate_float;
@@ -199,7 +189,6 @@ async function fetchBtcUsd() {
     console.log('[CoinDesk failed]', e?.message || e);
   }
 
-  // CoinGecko fallback
   const { data } = await httpFast.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true');
   const usd = data?.bitcoin?.usd;
   const tsSec = data?.bitcoin?.last_updated_at;
@@ -231,12 +220,10 @@ async function fetchAnyRate(base, quote) {
   if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' };
   const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c);
 
-  // BTC involved
   if (base === 'BTC' || quote === 'BTC') {
     return fetchBtcCross(base, quote);
   }
 
-  // BRL pair → try PTAX first, then fiat APIs
   if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
     try {
       return await fetchBcbPair(base, quote);
@@ -246,7 +233,6 @@ async function fetchAnyRate(base, quote) {
     }
   }
 
-  // any other fiat pair
   return fetchFiatRate(base, quote, null);
 }
 
@@ -262,7 +248,6 @@ async function fetchMonthlySeries(base, quote) {
     const dayStr = yyyymmdd(d);
     try {
       if (base === 'BTC' || quote === 'BTC') {
-        // BTC monthly approximation: BTCUSD (current) + month-end fiat cross for the other side
         const { usdPerBtc } = await fetchBtcUsd();
         if (base === 'BTC' && quote !== 'USD') {
           const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr);
@@ -276,7 +261,6 @@ async function fetchMonthlySeries(base, quote) {
           series.push(1 / usdPerBtc);
         }
       } else {
-        // all-fiat month-end snapshot
         const { rate } = await fetchFiatRate(base, quote, dayStr);
         series.push(rate);
       }
@@ -319,6 +303,7 @@ export default function CurrencyConverter() {
     if (pickerVisible.which === 'from') setFrom(code);
     if (pickerVisible.which === 'to') setTo(code);
     setPickerVisible({ which: null, open: false });
+    setErrorMsg(''); // clear any prior message
   };
 
   const switchCurrencies = () => {
@@ -342,6 +327,14 @@ export default function CurrencyConverter() {
     setGraphData([]);
     setGraphLabels([]);
 
+    // ❗ Same-currency guard (your requested feature)
+    if (from === to) {
+      setLoading(false);
+      setErrorMsg('Please pick two different currencies for conversion.');
+      Vibration.vibrate(180); // short buzz
+      return;
+    }
+
     // 1) Spot conversion
     try {
       const amt = parseFloat((amount || '').replace(',', '.'));
@@ -364,14 +357,13 @@ export default function CurrencyConverter() {
       console.log('[Spot conversion failed]', from, to, e?.message || e);
       setErrorMsg('Failed to fetch exchange rate.');
       setLoading(false);
-      return; // stop here; don’t attempt graph if spot failed
+      return;
     }
 
     // 2) Monthly series (12 months). Doesn’t block the result if it fails.
     try {
       const { labels, series, allZero } = await fetchMonthlySeries(from, to);
       if (allZero) {
-        // If everything zero, fill flat line at current spot (best effort)
         const { rate } = await fetchAnyRate(from, to);
         const flat = Array(labels.length).fill(rate);
         setGraphLabels(labels);
@@ -382,7 +374,6 @@ export default function CurrencyConverter() {
       }
     } catch (e) {
       console.log('[Graph series failed]', from, to, e?.message || e);
-      // Leave graph empty but keep the conversion result
     } finally {
       setLoading(false);
     }
@@ -424,11 +415,11 @@ export default function CurrencyConverter() {
         <Text style={styles.convertBtnText}>{loading ? 'Converting…' : 'Convert'}</Text>
       </TouchableOpacity>
 
-      {/* Result */}
+      {/* Result & error */}
       {!!convertedText && <Text style={styles.result}>{convertedText}</Text>}
       {!!errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-      {/* Rate date/time (show time only if we truly have it) */}
+      {/* Rate date/time */}
       {!!rateTimestampUTC && (
         <View style={styles.rateBlock}>
           <Text style={styles.rateTitle}>Latest available rate</Text>
@@ -485,7 +476,7 @@ export default function CurrencyConverter() {
         onRequestClose={() => setPickerVisible({ which: null, open: false })}
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setPickerVisible({ which: null, open: false })}>
-          <Pressable style={styles.modalSheet} onPress={() => { /* stop propagation */ }}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
             <Text style={styles.modalTitle}>
               {pickerVisible.which === 'from' ? 'Select source currency' : 'Select target currency'}
             </Text>
