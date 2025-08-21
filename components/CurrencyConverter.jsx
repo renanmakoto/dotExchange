@@ -4,7 +4,7 @@ import {
   Modal, FlatList, Pressable, Dimensions, Vibration
 } from 'react-native'
 import axios from 'axios'
-import { LineChart } from 'react-native-chart-kit';
+import { LineChart } from 'react-native-chart-kit'
 
 const SCREEN_W = Dimensions.get('window').width;
 
