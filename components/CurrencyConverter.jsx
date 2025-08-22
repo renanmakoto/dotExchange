@@ -15,7 +15,7 @@ const CURRENCIES = [
   { code: 'USD', name: 'US Dollar' },
   { code: 'EUR', name: 'Euro' },
   { code: 'BTC', name: 'Bitcoin' },
-];
+]
 
 // ---- city label by *target* currency ----
 function getLocationForCurrency(toCode) {
