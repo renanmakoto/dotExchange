@@ -23,7 +23,7 @@ function getLocationForCurrency(toCode) {
     case 'BRL': return 'Brasília'
     case 'CAD': return 'Toronto'
     case 'USD': return 'New York'
-    case 'EUR': return 'Frankfurt';
+    case 'EUR': return 'Frankfurt'
     case 'BTC':
     default:    return '';
   }
