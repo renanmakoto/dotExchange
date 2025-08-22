@@ -17,7 +17,7 @@ const CURRENCIES = [
   { code: 'BTC', name: 'Bitcoin' },
 ]
 
-// ---- city label by *target* currency ----
+//CITY LABEL BY TARGET CURRENCY
 function getLocationForCurrency(toCode) {
   switch (toCode) {
     case 'BRL': return 'Brasília';
