@@ -8,7 +8,7 @@ import { LineChart } from 'react-native-chart-kit'
 
 const SCREEN_W = Dimensions.get('window').width;
 
-// ---- currencies in the picker ----
+// currencies in the picker
 const CURRENCIES = [
   { code: 'BRL', name: 'Brazilian Real' },
   { code: 'CAD', name: 'Canadian Dollar' },
