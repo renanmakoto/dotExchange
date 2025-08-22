@@ -21,7 +21,7 @@ const CURRENCIES = [
 function getLocationForCurrency(toCode) {
   switch (toCode) {
     case 'BRL': return 'Brasília'
-    case 'CAD': return 'Toronto';
+    case 'CAD': return 'Toronto'
     case 'USD': return 'New York';
     case 'EUR': return 'Frankfurt';
     case 'BTC':
