@@ -1,6 +1,6 @@
 <h1 align="center">dotCoin</h1>
 
-<p align="center">A Canadian Dollar price checker.</p>
+<p align="center">Currency conversion Android app.</p>
 
 <div align="center">
 
