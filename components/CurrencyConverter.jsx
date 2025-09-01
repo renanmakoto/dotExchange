@@ -164,7 +164,7 @@ async function fetchEcbDailyCross(base, quote) {
   return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
 }
 
-// Frankfurter / exchangerate.host for historical & fallback (unchanged)
+//Frankfurter / exchangerate.host for historical & fallback (unchanged)
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   try {
     if (dateStr) {
