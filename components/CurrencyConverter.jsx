@@ -31,7 +31,7 @@ function getLocationForCurrency(toCode) {
 
 // ---- axios instances with timeouts ----
 const http = axios.create({ timeout: 12000 });
-const httpFast = axios.create({ timeout: 8000 }); // 8s
+const httpFast = axios.create({ timeout: 8000 });
 
 // ---- formatting helpers ----
 function formatAmount(value, currency) {
