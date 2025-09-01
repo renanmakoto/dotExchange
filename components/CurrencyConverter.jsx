@@ -137,7 +137,7 @@ async function fetchBcbPair(base, quote) {
   throw new Error('No PTAX data within 7 days');
 }
 
-/** ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
+/*ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
 async function fetchEcbDailyCross(base, quote) {
   const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
   const { data: xml } = await httpFast.get(url, { responseType: 'text' });
