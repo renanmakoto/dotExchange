@@ -99,7 +99,7 @@ function lastTwelveMonthEnds() {
  *         API LAYER
  * =========================*/
 
-// A) PTAX (BCB) for BRL pairs with rollback up to 7 days
+//PTAX (BCB) for BRL pairs with rollback up to 7 days
 async function fetchBcbPair(base, quote) {
   const foreign = base === 'BRL' ? quote : base;
   let attempts = 0;
