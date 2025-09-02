@@ -563,7 +563,6 @@ export default function CurrencyConverter() {
   );
 }
 
-// ---- styles ----
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
