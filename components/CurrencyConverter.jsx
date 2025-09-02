@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 8,
   },
-  graphLoading: {            // 👈 NEW (subtle, matches your theme)
+  graphLoading: {
     color: '#9aa0a6',
     fontSize: 14,
     marginTop: 6,
