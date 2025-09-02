@@ -4,8 +4,10 @@
     "slug": "dotcoin",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,9 +23,15 @@
     },
     "android": {
       "package": "com.renanmakoto.dotCoin",
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      }
     },
-    "web": {},
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
     "extra": {
       "eas": {
         "projectId": "968a9733-cf5a-4ddd-987b-692ff2e13925"
