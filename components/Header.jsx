@@ -4,7 +4,7 @@ import { View, StyleSheet, Text } from 'react-native'
 export default function Header() {
   return (
     <View style={styles.container}>
-        <Text style={styles.footerText}>dotCoin</Text>
+        <Text style={styles.footerText}>dotExchange</Text>
     </View>
   )
 }
