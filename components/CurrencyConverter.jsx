@@ -25,7 +25,7 @@ function getLocationForCurrency(toCode) {
     case 'USD': return 'New York'
     case 'EUR': return 'Frankfurt'
     case 'BTC':
-    default:    return '';
+    default:    return ''
   }
 }
 
