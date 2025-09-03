@@ -15,7 +15,7 @@ TECHNOLOGIES USED:
 <a href="https://expo.dev/"><img src="https://raw.githubusercontent.com/expo/logos/main/png/logo-type-a.png" style="width: 64px; height: 64px" /></a>
 
 <h4 align="center"> 
-	🚧  dotCoin 🚀 Will be uploaded to Google Play Store soon...  🚧
+	🚧  dotExchange 🚀 Will be uploaded to Google Play Store soon...  🚧
 </h4>
 
 ### Features
