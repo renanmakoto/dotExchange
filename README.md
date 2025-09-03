@@ -1,4 +1,4 @@
-<h1 align="center">dotCoin</h1>
+<h1 align="center">dotExchange</h1>
 
 <p align="center">Currency conversion Android app.</p>
 
