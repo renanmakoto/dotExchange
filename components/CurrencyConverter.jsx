@@ -33,7 +33,7 @@ function getLocationForCurrency(toCode) {
 const http = axios.create({ timeout: 12000 })
 const httpFast = axios.create({ timeout: 8000 })
 
-// ---- formatting helpers ----
+//FORMATTING HELPERS
 function formatAmount(value, currency) {
   try {
     const isBTC = currency === 'BTC';
