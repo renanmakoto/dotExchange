@@ -36,7 +36,7 @@ const httpFast = axios.create({ timeout: 8000 })
 //FORMATTING HELPERS
 function formatAmount(value, currency) {
   try {
-    const isBTC = currency === 'BTC';
+    const isBTC = currency === 'BTC'
     const locale =
       currency === 'BRL' ? 'pt-BR' :
       currency === 'EUR' ? 'en-IE' :
