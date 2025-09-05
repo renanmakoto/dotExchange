@@ -378,7 +378,7 @@ export default function CurrencyConverter() {
     setGraphData([]);
     setGraphLabels([]);
 
-    // ❗ Same-currency guard
+    //Same-currency guard
     if (from === to) {
       setLoading(false);
       setErrorMsg('Please pick two different currencies for conversion.');
