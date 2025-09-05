@@ -414,7 +414,7 @@ export default function CurrencyConverter() {
 
     // 2) Monthly series (12 months). Doesn’t block the result if it fails.
     try {
-      setLoadingGraph(true); // 👈 show "Generating graph..."
+      setLoadingGraph(true); //show "Generating graph..."
       const { labels, series, allZero } = await fetchMonthlySeries(from, to);
       if (allZero) {
         const { rate } = await fetchAnyRate(from, to);
