@@ -95,9 +95,6 @@ function lastTwelveMonthEnds() {
   return out;
 }
 
-/* =========================
- *         API LAYER
- * =========================*/
 
 //PTAX (BCB) for BRL pairs with rollback up to 7 days
 async function fetchBcbPair(base, quote) {
