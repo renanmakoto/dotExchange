@@ -84,7 +84,7 @@ function yyyymmdd(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-//Make 12 month-end dates, oldest→newest
+//12 MONTH-END DATES
 function lastTwelveMonthEnds() {
   const out = [];
   const now = new Date();
