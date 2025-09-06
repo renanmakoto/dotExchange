@@ -25,7 +25,9 @@ TECHNOLOGIES USED:
 - [ ] Uploaded to Google Play Store
 
 
-<img src="" style="width: 300px; height: 600px;"/>
+<video src="./assets/sample.webm" style="width: 300px; height: 600px;" controls>
+  Your browser does not support the video tag.
+</video>
 
 
 </div>
