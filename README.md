@@ -25,9 +25,7 @@ TECHNOLOGIES USED:
 - [ ] Uploaded to Google Play Store
 
 
-<video src="./assets/sample.webm" style="width: 300px; height: 600px;" controls>
-
-</video>
+<img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
 
 
 </div>
