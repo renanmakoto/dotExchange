@@ -24,7 +24,8 @@ TECHNOLOGIES USED:
 - [X] Functionalities
 - [ ] Uploaded to Google Play Store
 
-      
+
+<img src="" style="width: 300px; height: 600px;"/>
 
 
 </div>
