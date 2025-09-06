@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "dotExchange",
-    "slug": "dotexchange",
+    "slug": "dotcoin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -25,7 +27,7 @@
     },
     "android": {
       "package": "com.renanmakoto.dotexchange",
-      "versionCode": 1,
+      "versionCode": 2,
       "jsEngine": "jsc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
