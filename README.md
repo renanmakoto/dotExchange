@@ -26,7 +26,7 @@ TECHNOLOGIES USED:
 
 
 <video src="./assets/sample.webm" style="width: 300px; height: 600px;" controls>
-  Your browser does not support the video tag.
+
 </video>
 
 
