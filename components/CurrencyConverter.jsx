@@ -15,7 +15,7 @@ const HAS_INTL =
   typeof Intl.DateTimeFormat === 'function'
 
 function normalizeUTC(str) {
-  if (!str) return null;
+  if (!str) return null
   // Accept "YYYY-MM-DD HH:mm:ss" (BCB) or ISO strings; coerce to UTC.
   if (str.includes(' ') && !str.endsWith('Z')) {
     return new Date(str.replace(' ', 'T') + 'Z');
