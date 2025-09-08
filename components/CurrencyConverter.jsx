@@ -25,7 +25,7 @@ function normalizeUTC(str) {
 
 function safeFormatNumber(value, locale, opts) {
   if (HAS_INTL) return new Intl.NumberFormat(locale, opts).format(value)
-  // Basic fallback: fixed decimals + thousands for pt-BR.
+
   const digits =
     (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2;
   const n = Number(value);
