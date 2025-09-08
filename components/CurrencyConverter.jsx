@@ -19,7 +19,7 @@ function normalizeUTC(str) {
   if (str.includes(' ') && !str.endsWith('Z')) {
     return new Date(str.replace(' ', 'T') + 'Z')
   }
-  const d = new Date(str);
+  const d = new Date(str)
   return isNaN(d.getTime()) ? null : d;
 }
 
