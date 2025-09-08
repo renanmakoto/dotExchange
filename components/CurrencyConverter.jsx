@@ -1,4 +1,3 @@
-// components/converter/CurrencyConverter.jsx
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
@@ -9,12 +8,7 @@ import { LineChart } from 'react-native-chart-kit';
 
 const SCREEN_W = Dimensions.get('window').width;
 
-/* =========================================================================
- *                         SAFE Intl FALLBACKS (ANDROID)
- * =========================================================================
- * Hermes supports Intl.*; JSC often does not. These wrappers prevent
- * runtime crashes if Intl is unavailable and provide basic formatting.
- */
+
 const HAS_INTL =
   typeof Intl !== 'undefined' &&
   typeof Intl.NumberFormat === 'function' &&
