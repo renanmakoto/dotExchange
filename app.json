@@ -17,6 +17,11 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
+     "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff",
+      "translucent": false
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.renanmakoto.dotexchange",

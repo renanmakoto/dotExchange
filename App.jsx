@@ -7,6 +7,7 @@ import CurrencyConverter from './components/CurrencyConverter';
 export default function App() {
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <Header />
       <CurrencyConverter />
       <Footer />
