@@ -27,7 +27,7 @@ function safeFormatNumber(value, locale, opts) {
   if (HAS_INTL) return new Intl.NumberFormat(locale, opts).format(value)
 
   const digits =
-    (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2;
+    (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2
   const n = Number(value);
   if (!isFinite(n)) return String(value);
   const s = n.toFixed(digits);
