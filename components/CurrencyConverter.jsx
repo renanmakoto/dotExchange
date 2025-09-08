@@ -29,7 +29,7 @@ function safeFormatNumber(value, locale, opts) {
   const digits =
     (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2
   const n = Number(value)
-  if (!isFinite(n)) return String(value);
+  if (!isFinite(n)) return String(value)
   const s = n.toFixed(digits);
   if (locale === 'pt-BR') {
     const [int, dec] = s.split('.');
