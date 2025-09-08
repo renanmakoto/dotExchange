@@ -12,7 +12,7 @@ const SCREEN_W = Dimensions.get('window').width
 const HAS_INTL =
   typeof Intl !== 'undefined' &&
   typeof Intl.NumberFormat === 'function' &&
-  typeof Intl.DateTimeFormat === 'function';
+  typeof Intl.DateTimeFormat === 'function'
 
 function normalizeUTC(str) {
   if (!str) return null;
