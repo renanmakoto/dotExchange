@@ -32,7 +32,7 @@ function safeFormatNumber(value, locale, opts) {
   if (!isFinite(n)) return String(value)
   const s = n.toFixed(digits)
   if (locale === 'pt-BR') {
-    const [int, dec] = s.split('.');
+    const [int, dec] = s.split('.')
     return int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ',' + dec : '');
   }
   return s;
