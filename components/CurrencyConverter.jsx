@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   Modal, FlatList, Pressable, Dimensions, Vibration
-} from 'react-native';
+} from 'react-native'
 import axios from 'axios';
 import { LineChart } from 'react-native-chart-kit';
 
