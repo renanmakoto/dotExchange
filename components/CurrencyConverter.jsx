@@ -6,7 +6,7 @@ import {
 import axios from 'axios'
 import { LineChart } from 'react-native-chart-kit'
 
-const SCREEN_W = Dimensions.get('window').width;
+const SCREEN_W = Dimensions.get('window').width
 
 
 const HAS_INTL =
