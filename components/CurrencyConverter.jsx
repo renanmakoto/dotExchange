@@ -30,7 +30,7 @@ function safeFormatNumber(value, locale, opts) {
     (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2
   const n = Number(value)
   if (!isFinite(n)) return String(value)
-  const s = n.toFixed(digits);
+  const s = n.toFixed(digits)
   if (locale === 'pt-BR') {
     const [int, dec] = s.split('.');
     return int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ',' + dec : '');
