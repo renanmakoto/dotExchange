@@ -17,7 +17,7 @@ const HAS_INTL =
 function normalizeUTC(str) {
   if (!str) return null
   if (str.includes(' ') && !str.endsWith('Z')) {
-    return new Date(str.replace(' ', 'T') + 'Z');
+    return new Date(str.replace(' ', 'T') + 'Z')
   }
   const d = new Date(str);
   return isNaN(d.getTime()) ? null : d;
