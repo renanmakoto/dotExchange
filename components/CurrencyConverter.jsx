@@ -1,76 +1,135 @@
-import React, { useMemo, useState } from 'react'
+// components/converter/CurrencyConverter.jsx
+import React, { useMemo, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   Modal, FlatList, Pressable, Dimensions, Vibration
-} from 'react-native'
-import axios from 'axios'
-import { LineChart } from 'react-native-chart-kit'
+} from 'react-native';
+import axios from 'axios';
+import { LineChart } from 'react-native-chart-kit';
 
-const SCREEN_W = Dimensions.get('window').width
+const SCREEN_W = Dimensions.get('window').width;
 
-//CURRENCIES IN THE PICKER
+/* =========================================================================
+ *                         SAFE Intl FALLBACKS (ANDROID)
+ * =========================================================================
+ * Hermes supports Intl.*; JSC often does not. These wrappers prevent
+ * runtime crashes if Intl is unavailable and provide basic formatting.
+ */
+const HAS_INTL =
+  typeof Intl !== 'undefined' &&
+  typeof Intl.NumberFormat === 'function' &&
+  typeof Intl.DateTimeFormat === 'function';
+
+function normalizeUTC(str) {
+  if (!str) return null;
+  // Accept "YYYY-MM-DD HH:mm:ss" (BCB) or ISO strings; coerce to UTC.
+  if (str.includes(' ') && !str.endsWith('Z')) {
+    return new Date(str.replace(' ', 'T') + 'Z');
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function safeFormatNumber(value, locale, opts) {
+  if (HAS_INTL) return new Intl.NumberFormat(locale, opts).format(value);
+  // Basic fallback: fixed decimals + thousands for pt-BR.
+  const digits =
+    (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2;
+  const n = Number(value);
+  if (!isFinite(n)) return String(value);
+  const s = n.toFixed(digits);
+  if (locale === 'pt-BR') {
+    const [int, dec] = s.split('.');
+    return int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ',' + dec : '');
+  }
+  return s;
+}
+
+function safeFormatTimeISO(isoOrUtcStr) {
+  const d = normalizeUTC(isoOrUtcStr);
+  if (!d) return '-';
+  if (HAS_INTL) {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC',
+    }).format(d);
+  }
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+function safeFormatDateISO(isoOrUtcStr) {
+  const d = normalizeUTC(isoOrUtcStr);
+  if (!d) return '-';
+  if (HAS_INTL) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+    }).format(d);
+  }
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
+  return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+/* =========================================================================
+ *                              CONSTANTS
+ * ========================================================================= */
+
+// Currencies available in the picker
 const CURRENCIES = [
   { code: 'BRL', name: 'Brazilian Real' },
   { code: 'CAD', name: 'Canadian Dollar' },
   { code: 'USD', name: 'US Dollar' },
   { code: 'EUR', name: 'Euro' },
   { code: 'BTC', name: 'Bitcoin' },
-]
+];
 
-//CITY LABEL BY TARGET CURRENCY
+// City label shown based on the *target* currency
 function getLocationForCurrency(toCode) {
   switch (toCode) {
-    case 'BRL': return 'Brasília'
-    case 'CAD': return 'Toronto'
-    case 'USD': return 'New York'
-    case 'EUR': return 'Frankfurt'
+    case 'BRL': return 'Brasília';
+    case 'CAD': return 'Toronto';
+    case 'USD': return 'New York';
+    case 'EUR': return 'Frankfurt';
     case 'BTC':
-    default:    return ''
+    default:    return '';
   }
 }
 
-//AXIOS INSTANCES WITH TIMEOUTS
-const http = axios.create({ timeout: 12000 })
-const httpFast = axios.create({ timeout: 8000 })
+// Axios instances with explicit timeouts
+const http = axios.create({ timeout: 12000 });     // standard calls
+const httpFast = axios.create({ timeout: 8000 });  // faster / small payloads
 
-//FORMATTING HELPERS
+/* =========================================================================
+ *                          FORMATTERS / DATE HELPERS
+ * ========================================================================= */
+
+// Number formatting that uses safe wrapper
 function formatAmount(value, currency) {
   try {
-    const isBTC = currency === 'BTC'
+    const isBTC = currency === 'BTC';
     const locale =
       currency === 'BRL' ? 'pt-BR' :
       currency === 'EUR' ? 'en-IE' :
       'en-CA';
     const opts = isBTC
       ? { minimumFractionDigits: 8, maximumFractionDigits: 8 }
-      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-    return new Intl.NumberFormat(locale, opts).format(value);
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+    return safeFormatNumber(value, locale, opts);
   } catch {
     return String(value);
   }
 }
 
+// Splits a UTC-like string into human time/date strings
 function parseTimestampParts(utcString) {
   if (!utcString) return { timeStr: '-', dateStr: '-' };
-  let d;
-  if (utcString.includes(' ') && !utcString.endsWith('Z')) {
-    const iso = utcString.replace(' ', 'T') + 'Z';
-    d = new Date(iso);
-  } else {
-    d = new Date(utcString);
-  }
-  if (isNaN(d.getTime())) return { timeStr: '-', dateStr: '-' };
-
-  const timeStr = new Intl.DateTimeFormat('en-US', {
-    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC',
-  }).format(d);
-  const dateStr = new Intl.DateTimeFormat('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-  }).format(d);
-  return { timeStr, dateStr };
+  return {
+    timeStr: safeFormatTimeISO(utcString),
+    dateStr: safeFormatDateISO(utcString),
+  };
 }
 
-//DATE HELPERS
+// Date helpers for BCB and historical queries
 function mmddyyyy(d) {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
@@ -84,7 +143,7 @@ function yyyymmdd(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-//12 MONTH-END DATES
+// Build 12 month-end dates, oldest → newest
 function lastTwelveMonthEnds() {
   const out = [];
   const now = new Date();
@@ -95,8 +154,11 @@ function lastTwelveMonthEnds() {
   return out;
 }
 
+/* =========================================================================
+ *                                 API LAYER
+ * ========================================================================= */
 
-//PTAX (BCB) for BRL pairs with rollback up to 7 days
+// (A) BCB PTAX for BRL pairs with up to 7-day rollback
 async function fetchBcbPair(base, quote) {
   const foreign = base === 'BRL' ? quote : base;
   let attempts = 0;
@@ -115,7 +177,7 @@ async function fetchBcbPair(base, quote) {
       if (arr.length) {
         const latest = arr[0];
         const brlPerForeign = latest.cotacaoVenda;
-        const ts = latest.dataHoraCotacao;
+        const ts = latest.dataHoraCotacao; // "YYYY-MM-DD HH:mm:ss"
         if (base === 'BRL' && quote !== 'BRL') {
           return { rate: 1 / brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' };
         }
@@ -124,7 +186,8 @@ async function fetchBcbPair(base, quote) {
         }
         throw new Error('Unsupported PTAX pair');
       }
-    } catch (e) {
+    } catch {
+      // ignore and roll back date
     }
 
     day.setDate(day.getDate() - 1);
@@ -133,7 +196,7 @@ async function fetchBcbPair(base, quote) {
   throw new Error('No PTAX data within 7 days');
 }
 
-/*ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
+/** (B) ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
 async function fetchEcbDailyCross(base, quote) {
   const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
   const { data: xml } = await httpFast.get(url, { responseType: 'text' });
@@ -141,9 +204,7 @@ async function fetchEcbDailyCross(base, quote) {
   const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/);
   const date = timeMatch ? timeMatch[1] : null;
 
-  const rates = {};
-  rates['EUR'] = 1.0;
-
+  const rates = { EUR: 1.0 };
   const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
   let m;
   while ((m = rx.exec(xml)) !== null) {
@@ -160,7 +221,7 @@ async function fetchEcbDailyCross(base, quote) {
   return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
 }
 
-//Frankfurter / exchangerate.host for historical & fallback (unchanged)
+// (C) Frankfurter / exchangerate.host for historical & fallback
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   try {
     if (dateStr) {
@@ -199,9 +260,9 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   }
 }
 
-/* BTC: CoinGecko, Coinbase, CoinDesk (last) */
+/* (D) BTC: CoinGecko → Coinbase → CoinDesk (last) */
 async function fetchBtcUsd() {
-  //CoinGecko (robust in RN)
+  // 1) CoinGecko
   try {
     const { data } = await httpFast.get(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
@@ -217,12 +278,12 @@ async function fetchBtcUsd() {
     console.log('[CoinGecko failed]', e?.message || e);
   }
 
-  // 2) Coinbase public (no auth). Gives BTC→fiat table; pick USD.
+  // 2) Coinbase
   try {
     const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
     const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null;
     if (usdPerBtc) {
-      const tsISO = new Date().toISOString(); // Coinbase endpoint doesn’t return timestamp; use now
+      const tsISO = new Date().toISOString(); // Coinbase does not return a timestamp
       return { usdPerBtc, timestampUTC: tsISO, hasTime: true, source: 'Coinbase' };
     }
     throw new Error('No Coinbase BTC/USD');
@@ -230,7 +291,7 @@ async function fetchBtcUsd() {
     console.log('[Coinbase failed]', e?.message || e);
   }
 
-  // 3) CoinDesk (last resort)
+  // 3) CoinDesk
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json');
     const usdPerBtc = data?.bpi?.USD?.rate_float;
@@ -251,27 +312,25 @@ async function fetchBtcCross(base, quote) {
   if (base === 'USD' && quote === 'BTC') return { rate: 1 / usdPerBtc, timestampUTC, hasTime, source };
 
   if (base === 'BTC') {
-    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote); // official cross
+    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote);
     return { rate: usdPerBtc * usdToQuote, timestampUTC, hasTime, source };
   }
   if (quote === 'BTC') {
-    const { rate: baseToUsd } = await fetchEcbDailyCross(base, 'USD'); // official cross
+    const { rate: baseToUsd } = await fetchEcbDailyCross(base, 'USD');
     return { rate: baseToUsd / usdPerBtc, timestampUTC, hasTime, source };
   }
   throw new Error('Unsupported BTC pair');
 }
 
-// D) Unified fetch for any pair (BRL, USD, CAD, EUR, BTC)
+// (E) Unified access for any pair (BRL, USD, CAD, EUR, BTC)
 async function fetchAnyRate(base, quote) {
   if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' };
   const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c);
 
-  // BTC involved
   if (base === 'BTC' || quote === 'BTC') {
     return fetchBtcCross(base, quote);
   }
 
-  // BRL pair → try PTAX first, then ECB daily (official)
   if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
     try {
       return await fetchBcbPair(base, quote);
@@ -281,11 +340,10 @@ async function fetchAnyRate(base, quote) {
     }
   }
 
-  // any other fiat pair → ECB daily (official)
   return fetchEcbDailyCross(base, quote);
 }
 
-// E) Monthly series (12 month-end points)
+// (F) Monthly series (12 month-end points) with historical sources
 async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds();
   const labels = monthEnds.map((d) =>
@@ -299,7 +357,7 @@ async function fetchMonthlySeries(base, quote) {
       if (base === 'BTC' || quote === 'BTC') {
         const { usdPerBtc } = await fetchBtcUsd();
         if (base === 'BTC' && quote !== 'USD') {
-          const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr); // historical via Frankfurter
+          const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr);
           series.push(usdPerBtc * usdToQuote);
         } else if (quote === 'BTC' && base !== 'USD') {
           const { rate: baseToUsd } = await fetchFiatRate(base, 'USD', dayStr);
@@ -310,7 +368,7 @@ async function fetchMonthlySeries(base, quote) {
           series.push(1 / usdPerBtc);
         }
       } else {
-        const { rate } = await fetchFiatRate(base, quote, dayStr); // historical via Frankfurter
+        const { rate } = await fetchFiatRate(base, quote, dayStr);
         series.push(rate);
       }
     } catch (e) {
@@ -323,9 +381,9 @@ async function fetchMonthlySeries(base, quote) {
   return { labels, series, allZero };
 }
 
-/* =========================
- *     UI / COMPONENT
- * =========================*/
+/* =========================================================================
+ *                              UI / COMPONENT
+ * ========================================================================= */
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1');
@@ -340,7 +398,7 @@ export default function CurrencyConverter() {
   const [graphData, setGraphData] = useState([]);
   const [graphLabels, setGraphLabels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingGraph, setLoadingGraph] = useState(false); // 👈 NEW
+  const [loadingGraph, setLoadingGraph] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const locationSuffix = useMemo(() => {
@@ -353,7 +411,7 @@ export default function CurrencyConverter() {
     if (pickerVisible.which === 'from') setFrom(code);
     if (pickerVisible.which === 'to') setTo(code);
     setPickerVisible({ which: null, open: false });
-    setErrorMsg(''); // clear any prior message
+    setErrorMsg('');
   };
 
   const switchCurrencies = () => {
@@ -367,10 +425,10 @@ export default function CurrencyConverter() {
     setErrorMsg('');
   };
 
-  // ---------- Convert handler ----------
+  // Convert handler
   const handleConvert = async () => {
     setLoading(true);
-    setLoadingGraph(false);     // reset graph flag
+    setLoadingGraph(false);
     setErrorMsg('');
     setConvertedText('');
     setRateTimestampUTC('');
@@ -378,15 +436,15 @@ export default function CurrencyConverter() {
     setGraphData([]);
     setGraphLabels([]);
 
-    //Same-currency guard
+    // Same-currency guard
     if (from === to) {
       setLoading(false);
       setErrorMsg('Please pick two different currencies for conversion.');
-      Vibration.vibrate(180); // short buzz
+      Vibration.vibrate(180);
       return;
     }
 
-    // 1) Spot conversion
+    // Spot conversion
     try {
       const amt = parseFloat((amount || '').replace(',', '.'));
       if (isNaN(amt)) {
@@ -412,18 +470,21 @@ export default function CurrencyConverter() {
       return;
     }
 
-    // 2) Monthly series (12 months). Doesn’t block the result if it fails.
+    // Monthly series (12 months)
     try {
-      setLoadingGraph(true); //show "Generating graph..."
+      setLoadingGraph(true);
       const { labels, series, allZero } = await fetchMonthlySeries(from, to);
       if (allZero) {
         const { rate } = await fetchAnyRate(from, to);
         const flat = Array(labels.length).fill(rate);
+        // Ensure chart never gets NaN/Infinity
+        const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0));
         setGraphLabels(labels);
-        setGraphData(flat);
+        setGraphData(cleaned);
       } else {
+        const cleaned = series.map(v => (Number.isFinite(v) ? v : 0));
         setGraphLabels(labels);
-        setGraphData(series);
+        setGraphData(cleaned);
       }
     } catch (e) {
       console.log('[Graph series failed]', from, to, e?.message || e);
@@ -433,7 +494,7 @@ export default function CurrencyConverter() {
     }
   };
 
-  const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC])
+  const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC]);
 
   return (
     <View style={styles.container}>
@@ -556,9 +617,12 @@ export default function CurrencyConverter() {
         </Pressable>
       </Modal>
     </View>
-  )
+  );
 }
 
+/* =========================================================================
+ *                                   STYLES
+ * ========================================================================= */
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
@@ -705,4 +769,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#3a3a3a',
     opacity: 0.6,
   },
-})
+});
