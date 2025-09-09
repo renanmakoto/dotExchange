@@ -52,7 +52,7 @@ function safeFormatTimeISO(isoOrUtcStr) {
 }
 
 function safeFormatDateISO(isoOrUtcStr) {
-  const d = normalizeUTC(isoOrUtcStr);
+  const d = normalizeUTC(isoOrUtcStr)
   if (!d) return '-';
   if (HAS_INTL) {
     return new Intl.DateTimeFormat('en-US', {
