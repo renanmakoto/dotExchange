@@ -57,7 +57,7 @@ function safeFormatDateISO(isoOrUtcStr) {
   if (HAS_INTL) {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-    }).format(d);
+    }).format(d)
   }
   const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
   return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
