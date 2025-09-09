@@ -63,7 +63,7 @@ function safeFormatDateISO(isoOrUtcStr) {
   return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
-// Currencies available in the picker
+//Currencies available in the picker
 const CURRENCIES = [
   { code: 'BRL', name: 'Brazilian Real' },
   { code: 'CAD', name: 'Canadian Dollar' },
