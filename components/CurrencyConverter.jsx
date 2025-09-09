@@ -44,7 +44,7 @@ function safeFormatTimeISO(isoOrUtcStr) {
   if (HAS_INTL) {
     return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC',
-    }).format(d);
+    }).format(d)
   }
   const hh = String(d.getUTCHours()).padStart(2, '0');
   const mm = String(d.getUTCMinutes()).padStart(2, '0');
