@@ -20,7 +20,7 @@ function normalizeUTC(str) {
     return new Date(str.replace(' ', 'T') + 'Z')
   }
   const d = new Date(str)
-  return isNaN(d.getTime()) ? null : d;
+  return isNaN(d.getTime()) ? null : d
 }
 
 function safeFormatNumber(value, locale, opts) {
