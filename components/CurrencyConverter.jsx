@@ -40,7 +40,7 @@ function safeFormatNumber(value, locale, opts) {
 
 function safeFormatTimeISO(isoOrUtcStr) {
   const d = normalizeUTC(isoOrUtcStr)
-  if (!d) return '-';
+  if (!d) return '-'
   if (HAS_INTL) {
     return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC',
