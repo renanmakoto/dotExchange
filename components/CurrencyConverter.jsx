@@ -35,7 +35,7 @@ function safeFormatNumber(value, locale, opts) {
     const [int, dec] = s.split('.')
     return int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ',' + dec : '')
   }
-  return s;
+  return s
 }
 
 function safeFormatTimeISO(isoOrUtcStr) {
