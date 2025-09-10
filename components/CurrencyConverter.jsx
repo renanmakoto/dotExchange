@@ -107,7 +107,7 @@ function formatAmount(value, currency) {
 
 //SPLITS A UTC-LIKE STRING INTO HUMAN TIME/DATE STRINGS
 function parseTimestampParts(utcString) {
-  if (!utcString) return { timeStr: '-', dateStr: '-' };
+  if (!utcString) return { timeStr: '-', dateStr: '-' }
   return {
     timeStr: safeFormatTimeISO(utcString),
     dateStr: safeFormatDateISO(utcString),
