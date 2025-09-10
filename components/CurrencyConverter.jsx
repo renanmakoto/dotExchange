@@ -111,7 +111,7 @@ function parseTimestampParts(utcString) {
   return {
     timeStr: safeFormatTimeISO(utcString),
     dateStr: safeFormatDateISO(utcString),
-  };
+  }
 }
 
 // Date helpers for BCB and historical queries
