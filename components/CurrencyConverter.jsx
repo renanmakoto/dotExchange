@@ -95,7 +95,7 @@ function formatAmount(value, currency) {
     const locale =
       currency === 'BRL' ? 'pt-BR' :
       currency === 'EUR' ? 'en-IE' :
-      'en-CA';
+      'en-CA'
     const opts = isBTC
       ? { minimumFractionDigits: 8, maximumFractionDigits: 8 }
       : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
