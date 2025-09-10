@@ -60,7 +60,7 @@ function safeFormatDateISO(isoOrUtcStr) {
     }).format(d)
   }
   const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()]
-  return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`
 }
 
 //CURRENCIES
