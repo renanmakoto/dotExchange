@@ -105,7 +105,7 @@ function formatAmount(value, currency) {
   }
 }
 
-// Splits a UTC-like string into human time/date strings
+//FROMS UTC-LIKE TO STRING
 function parseTimestampParts(utcString) {
   if (!utcString) return { timeStr: '-', dateStr: '-' };
   return {
