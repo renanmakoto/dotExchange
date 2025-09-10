@@ -84,7 +84,7 @@ function getLocationForCurrency(toCode) {
   }
 }
 
-// Axios instances with explicit timeouts
+//AXIOS INSTANCES WITH TIMEOUTS
 const http = axios.create({ timeout: 12000 });     // standard calls
 const httpFast = axios.create({ timeout: 8000 });  // faster / small payloads
 
