@@ -101,7 +101,7 @@ function formatAmount(value, currency) {
       : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
     return safeFormatNumber(value, locale, opts)
   } catch {
-    return String(value);
+    return String(value)
   }
 }
 
