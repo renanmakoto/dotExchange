@@ -99,7 +99,7 @@ function formatAmount(value, currency) {
     const opts = isBTC
       ? { minimumFractionDigits: 8, maximumFractionDigits: 8 }
       : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-    return safeFormatNumber(value, locale, opts);
+    return safeFormatNumber(value, locale, opts)
   } catch {
     return String(value);
   }
