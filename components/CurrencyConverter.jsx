@@ -88,10 +88,6 @@ function getLocationForCurrency(toCode) {
 const http = axios.create({ timeout: 12000 })
 const httpFast = axios.create({ timeout: 8000 })
 
-/* =========================================================================
- *                          FORMATTERS / DATE HELPERS
- * ========================================================================= */
-
 // Number formatting that uses safe wrapper
 function formatAmount(value, currency) {
   try {
