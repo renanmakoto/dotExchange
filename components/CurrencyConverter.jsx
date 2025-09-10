@@ -86,7 +86,7 @@ function getLocationForCurrency(toCode) {
 
 //AXIOS INSTANCES WITH TIMEOUTS
 const http = axios.create({ timeout: 12000 })
-const httpFast = axios.create({ timeout: 8000 });  // faster / small payloads
+const httpFast = axios.create({ timeout: 8000 })
 
 /* =========================================================================
  *                          FORMATTERS / DATE HELPERS
