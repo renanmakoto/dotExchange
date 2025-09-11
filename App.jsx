@@ -11,7 +11,7 @@ export default function App() {
       StatusBar.setBackgroundColor('#ffffff', true)
       StatusBar.setTranslucent(false)
     }
-  }, []);
+  }, [])
 
   return (
     <View style={styles.container}>
