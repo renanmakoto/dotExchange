@@ -12,7 +12,7 @@ export default function App() {
       <CurrencyConverter />
       <Footer />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
