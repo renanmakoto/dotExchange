@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, StatusBar } from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native'
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CurrencyConverter from './components/CurrencyConverter';
