@@ -9,7 +9,7 @@ export default function App() {
     StatusBar.setBarStyle('dark-content')
     if (Platform.OS === 'android') {
       StatusBar.setBackgroundColor('#ffffff', true)
-      StatusBar.setTranslucent(false);
+      StatusBar.setTranslucent(false)
     }
   }, []);
 
