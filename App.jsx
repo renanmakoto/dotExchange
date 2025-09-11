@@ -1,18 +1,26 @@
-import React from 'react'
-import { View, StyleSheet, StatusBar } from 'react-native'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import CurrencyConverter from './components/CurrencyConverter'
+import React, { useEffect } from 'react';
+import { View, StyleSheet, StatusBar, Platform } from 'react-native';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import CurrencyConverter from './components/CurrencyConverter';
 
 export default function App() {
+  useEffect(() => {
+    StatusBar.setBarStyle('dark-content');
+    if (Platform.OS === 'android') {
+      StatusBar.setBackgroundColor('#ffffff', true);
+      StatusBar.setTranslucent(false);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#ffffff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <Header />
       <CurrencyConverter />
       <Footer />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -22,4 +30,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-})
+});
