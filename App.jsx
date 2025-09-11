@@ -6,7 +6,7 @@ import CurrencyConverter from './components/CurrencyConverter'
 
 export default function App() {
   useEffect(() => {
-    StatusBar.setBarStyle('dark-content');
+    StatusBar.setBarStyle('dark-content')
     if (Platform.OS === 'android') {
       StatusBar.setBackgroundColor('#ffffff', true);
       StatusBar.setTranslucent(false);
