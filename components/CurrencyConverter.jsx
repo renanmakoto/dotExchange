@@ -169,13 +169,13 @@ async function fetchBcbPair(base, quote) {
         throw new Error('Unsupported PTAX pair')
       }
     } catch {
-      // ignore and roll back date
+      //IGNORE AND ROLL BACK DATE
     }
 
-    day.setDate(day.getDate() - 1);
-    attempts++;
+    day.setDate(day.getDate() - 1)
+    attempts++
   }
-  throw new Error('No PTAX data within 7 days');
+  throw new Error('No PTAX data within 7 days')
 }
 
 /** (B) ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
