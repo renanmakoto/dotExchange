@@ -166,7 +166,7 @@ async function fetchBcbPair(base, quote) {
         if (quote === 'BRL' && base !== 'BRL') {
           return { rate: brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' }
         }
-        throw new Error('Unsupported PTAX pair');
+        throw new Error('Unsupported PTAX pair')
       }
     } catch {
       // ignore and roll back date
