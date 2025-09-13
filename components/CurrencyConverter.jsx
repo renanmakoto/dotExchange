@@ -179,7 +179,7 @@ async function fetchBcbPair(base, quote) {
 }
 
 /*
- ECB DAILY REFERENCE IN XML FOR SPOT (USD/CAD/EUR/BRL CROSSES) 
+ECB DAILY REFERENCE IN XML FOR SPOT (USD/CAD/EUR/BRL CROSSES) 
 */
 async function fetchEcbDailyCross(base, quote) {
   const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
@@ -189,7 +189,7 @@ async function fetchEcbDailyCross(base, quote) {
   const date = timeMatch ? timeMatch[1] : null
 
   const rates = { EUR: 1.0 }
-  const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
+  const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g
   let m;
   while ((m = rx.exec(xml)) !== null) {
     rates[m[1]] = parseFloat(m[2]);
