@@ -185,7 +185,7 @@ async function fetchEcbDailyCross(base, quote) {
   const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
   const { data: xml } = await httpFast.get(url, { responseType: 'text' })
 
-  const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/);
+  const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/)
   const date = timeMatch ? timeMatch[1] : null;
 
   const rates = { EUR: 1.0 };
