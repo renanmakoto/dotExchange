@@ -363,10 +363,6 @@ async function fetchMonthlySeries(base, quote) {
   return { labels, series, allZero };
 }
 
-/* =========================================================================
- *                              UI / COMPONENT
- * ========================================================================= */
-
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1');
   const [from, setFrom] = useState('CAD');
