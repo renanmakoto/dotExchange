@@ -159,7 +159,7 @@ async function fetchBcbPair(base, quote) {
       if (arr.length) {
         const latest = arr[0]
         const brlPerForeign = latest.cotacaoVenda
-        const ts = latest.dataHoraCotacao;
+        const ts = latest.dataHoraCotacao
         if (base === 'BRL' && quote !== 'BRL') {
           return { rate: 1 / brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' };
         }
