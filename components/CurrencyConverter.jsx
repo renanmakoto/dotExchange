@@ -154,7 +154,7 @@ async function fetchBcbPair(base, quote) {
       `?@moeda='${foreign}'&@dataCotacao='${bcbDate}'&$top=100&$orderby=dataHoraCotacao desc&$format=json`
 
     try {
-      const { data } = await http.get(url);
+      const { data } = await http.get(url)
       const arr = data?.value ?? [];
       if (arr.length) {
         const latest = arr[0];
