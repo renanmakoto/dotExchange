@@ -190,7 +190,7 @@ async function fetchEcbDailyCross(base, quote) {
 
   const rates = { EUR: 1.0 }
   const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g
-  let m;
+  let m
   while ((m = rx.exec(xml)) !== null) {
     rates[m[1]] = parseFloat(m[2]);
   }
