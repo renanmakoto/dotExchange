@@ -188,7 +188,7 @@ async function fetchEcbDailyCross(base, quote) {
   const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/)
   const date = timeMatch ? timeMatch[1] : null
 
-  const rates = { EUR: 1.0 };
+  const rates = { EUR: 1.0 }
   const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
   let m;
   while ((m = rx.exec(xml)) !== null) {
