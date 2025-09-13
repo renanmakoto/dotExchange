@@ -151,7 +151,7 @@ async function fetchBcbPair(base, quote) {
     const url =
       `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
       `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
-      `?@moeda='${foreign}'&@dataCotacao='${bcbDate}'&$top=100&$orderby=dataHoraCotacao desc&$format=json`;
+      `?@moeda='${foreign}'&@dataCotacao='${bcbDate}'&$top=100&$orderby=dataHoraCotacao desc&$format=json`
 
     try {
       const { data } = await http.get(url);
@@ -159,7 +159,7 @@ async function fetchBcbPair(base, quote) {
       if (arr.length) {
         const latest = arr[0];
         const brlPerForeign = latest.cotacaoVenda;
-        const ts = latest.dataHoraCotacao; // "YYYY-MM-DD HH:mm:ss"
+        const ts = latest.dataHoraCotacao;
         if (base === 'BRL' && quote !== 'BRL') {
           return { rate: 1 / brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' };
         }
