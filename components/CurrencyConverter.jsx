@@ -144,7 +144,7 @@ function lastTwelveMonthEnds() {
 async function fetchBcbPair(base, quote) {
   const foreign = base === 'BRL' ? quote : base
   let attempts = 0;
-  let day = new Date();
+  let day = new Date()
 
   while (attempts < 7) {
     const bcbDate = mmddyyyy(day);
