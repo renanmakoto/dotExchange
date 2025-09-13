@@ -192,7 +192,7 @@ async function fetchEcbDailyCross(base, quote) {
   const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g
   let m
   while ((m = rx.exec(xml)) !== null) {
-    rates[m[1]] = parseFloat(m[2]);
+    rates[m[1]] = parseFloat(m[2])
   }
 
   if (!rates[base] && base !== 'EUR') throw new Error(`ECB has no ${base} quote`);
