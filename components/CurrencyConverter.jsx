@@ -119,7 +119,7 @@ function mmddyyyy(d) {
   const mm = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
   const yyyy = d.getFullYear()
-  return `${mm}-${dd}-${yyyy}`;
+  return `${mm}-${dd}-${yyyy}`
 }
 function yyyymmdd(d) {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
