@@ -186,7 +186,7 @@ async function fetchEcbDailyCross(base, quote) {
   const { data: xml } = await httpFast.get(url, { responseType: 'text' })
 
   const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/)
-  const date = timeMatch ? timeMatch[1] : null;
+  const date = timeMatch ? timeMatch[1] : null
 
   const rates = { EUR: 1.0 };
   const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g;
