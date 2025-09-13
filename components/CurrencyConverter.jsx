@@ -155,7 +155,7 @@ async function fetchBcbPair(base, quote) {
 
     try {
       const { data } = await http.get(url)
-      const arr = data?.value ?? [];
+      const arr = data?.value ?? []
       if (arr.length) {
         const latest = arr[0];
         const brlPerForeign = latest.cotacaoVenda;
