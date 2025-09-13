@@ -147,7 +147,7 @@ async function fetchBcbPair(base, quote) {
   let day = new Date()
 
   while (attempts < 7) {
-    const bcbDate = mmddyyyy(day);
+    const bcbDate = mmddyyyy(day)
     const url =
       `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
       `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
