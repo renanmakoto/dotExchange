@@ -137,7 +137,7 @@ function lastTwelveMonthEnds() {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i + 1, 0))
     out.push(d)
   }
-  return out;
+  return out
 }
 
 /* =========================================================================
