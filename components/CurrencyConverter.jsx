@@ -117,8 +117,8 @@ function parseTimestampParts(utcString) {
 // Date helpers for BCB and historical queries
 function mmddyyyy(d) {
   const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0');
-  const yyyy = d.getFullYear();
+  const dd = String(d.getDate()).padStart(2, '0')
+  const yyyy = d.getFullYear()
   return `${mm}-${dd}-${yyyy}`;
 }
 function yyyymmdd(d) {
