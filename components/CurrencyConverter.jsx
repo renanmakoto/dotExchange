@@ -129,7 +129,7 @@ function yyyymmdd(d) {
   return `${yyyy}-${mm}-${dd}`
 }
 
-// Build 12 month-end dates, oldest → newest
+//BUILD 12 MONTH-END DATES, FROM OLDEST TO NEWEST
 function lastTwelveMonthEnds() {
   const out = [];
   const now = new Date();
