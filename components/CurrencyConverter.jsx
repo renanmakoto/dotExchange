@@ -131,7 +131,7 @@ function yyyymmdd(d) {
 
 //BUILD 12 MONTH-END DATES, FROM OLDEST TO NEWEST
 function lastTwelveMonthEnds() {
-  const out = [];
+  const out = []
   const now = new Date();
   for (let i = 11; i >= 0; i--) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i + 1, 0));
