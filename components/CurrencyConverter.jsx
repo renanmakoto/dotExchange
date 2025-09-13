@@ -180,7 +180,7 @@ async function fetchBcbPair(base, quote) {
 
 /** (B) ECB daily reference (XML) for spot (USD/CAD/EUR/BRL crosses) */
 async function fetchEcbDailyCross(base, quote) {
-  const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
+  const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
   const { data: xml } = await httpFast.get(url, { responseType: 'text' });
 
   const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/);
