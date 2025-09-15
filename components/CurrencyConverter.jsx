@@ -244,7 +244,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   }
 }
 
-/* (D) BTC: CoinGecko → Coinbase → CoinDesk (last) */
+/* BTC: COINGECKO -> COINBASE -> COINDESK (last) */
 async function fetchBtcUsd() {
   // 1) CoinGecko
   try {
