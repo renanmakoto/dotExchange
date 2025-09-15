@@ -327,7 +327,7 @@ async function fetchAnyRate(base, quote) {
   return fetchEcbDailyCross(base, quote);
 }
 
-// (F) Monthly series (12 month-end points) with historical sources
+//MONTHLY SERIES (12 MONTH-END POINTS) WITH HISTORICAL SOURCES
 async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds();
   const labels = monthEnds.map((d) =>
