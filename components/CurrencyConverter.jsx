@@ -510,7 +510,7 @@ export default function CurrencyConverter() {
         <Text style={styles.convertBtnText}>{loading ? 'Converting…' : 'Convert'}</Text>
       </TouchableOpacity>
 
-      {/* Result & error */}
+      {/* RESULT AND ERROR */}
       {!!convertedText && <Text style={styles.result}>{convertedText}</Text>}
       {!!errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
