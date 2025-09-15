@@ -246,7 +246,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
 
 /* BTC: COINGECKO -> COINBASE -> COINDESK (last) */
 async function fetchBtcUsd() {
-  // 1) CoinGecko
+  //CoinGecko
   try {
     const { data } = await httpFast.get(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
@@ -262,7 +262,7 @@ async function fetchBtcUsd() {
     console.log('[CoinGecko failed]', e?.message || e);
   }
 
-  // 2) Coinbase
+  //Coinbase
   try {
     const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
     const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null;
@@ -275,7 +275,7 @@ async function fetchBtcUsd() {
     console.log('[Coinbase failed]', e?.message || e);
   }
 
-  // 3) CoinDesk
+  //CoinDesk
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json');
     const usdPerBtc = data?.bpi?.USD?.rate_float;
