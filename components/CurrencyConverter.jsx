@@ -405,7 +405,7 @@ export default function CurrencyConverter() {
     setErrorMsg('');
   };
 
-  // Convert handler
+  //CONVERT HANDLER
   const handleConvert = async () => {
     setLoading(true);
     setLoadingGraph(false);
