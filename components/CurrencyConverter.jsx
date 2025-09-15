@@ -505,7 +505,7 @@ export default function CurrencyConverter() {
         </TouchableOpacity>
       </View>
 
-      {/* Convert */}
+      {/* CONVERT */}
       <TouchableOpacity style={styles.convertBtn} onPress={handleConvert} disabled={loading}>
         <Text style={styles.convertBtnText}>{loading ? 'Converting…' : 'Convert'}</Text>
       </TouchableOpacity>
