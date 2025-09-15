@@ -140,7 +140,7 @@ function lastTwelveMonthEnds() {
   return out
 }
 
-//BCB PTAX FOR BRL PAIRS WITH UP TO 7-DAY ROLLBACK
+/*BCB PTAX FOR BRL PAIRS WITH UP TO 7-DAY ROLLBACK*/
 async function fetchBcbPair(base, quote) {
   const foreign = base === 'BRL' ? quote : base
   let attempts = 0;
@@ -205,7 +205,7 @@ async function fetchEcbDailyCross(base, quote) {
   return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
 }
 
-// (C) Frankfurter / exchangerate.host for historical & fallback
+//FRANKFURTER EXCHANGE.HOST FOR HISTORICAL & FALLBACK
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   try {
     if (dateStr) {
