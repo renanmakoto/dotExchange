@@ -478,7 +478,7 @@ export default function CurrencyConverter() {
 
   return (
     <View style={styles.container}>
-      {/* Amount */}
+      {/* AMOUNT */}
       <TextInput
         style={styles.input}
         keyboardType="decimal-pad"
