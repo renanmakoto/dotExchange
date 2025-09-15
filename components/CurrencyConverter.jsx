@@ -457,7 +457,7 @@ export default function CurrencyConverter() {
       if (allZero) {
         const { rate } = await fetchAnyRate(from, to);
         const flat = Array(labels.length).fill(rate);
-        // Ensure chart never gets NaN/Infinity
+        //ENSURE CHART NEVER GETS NAN/INFINITY
         const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0));
         setGraphLabels(labels);
         setGraphData(cleaned);
