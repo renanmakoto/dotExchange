@@ -488,7 +488,7 @@ export default function CurrencyConverter() {
         placeholderTextColor="#9aa0a6"
       />
 
-      {/* From / To */}
+      {/* FROM / TO */}
       <View style={styles.row}>
         <TouchableOpacity style={styles.selector} onPress={() => openPicker('from')}>
           <Text style={styles.selectorLabel}>From</Text>
