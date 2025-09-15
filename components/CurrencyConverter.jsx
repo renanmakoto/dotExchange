@@ -514,7 +514,7 @@ export default function CurrencyConverter() {
       {!!convertedText && <Text style={styles.result}>{convertedText}</Text>}
       {!!errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-      {/* Rate date/time */}
+      {/* RATE DATE/TIME */}
       {!!rateTimestampUTC && (
         <View style={styles.rateBlock}>
           <Text style={styles.rateTitle}>Latest available rate</Text>
