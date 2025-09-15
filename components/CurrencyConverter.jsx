@@ -424,7 +424,7 @@ export default function CurrencyConverter() {
       return;
     }
 
-    // Spot conversion
+    //SPOT CONVERSION
     try {
       const amt = parseFloat((amount || '').replace(',', '.'));
       if (isNaN(amt)) {
