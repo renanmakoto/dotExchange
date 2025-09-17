@@ -202,7 +202,7 @@ async function fetchEcbDailyCross(base, quote) {
   const eurToQuote = quote === 'EUR' ? 1 : rates[quote]
   const rate = eurToQuote / eurToBase
 
-  return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
+  return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' }
 }
 
 //FRANKFURTER EXCHANGE.HOST FOR HISTORICAL & FALLBACK
