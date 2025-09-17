@@ -198,7 +198,7 @@ async function fetchEcbDailyCross(base, quote) {
   if (!rates[base] && base !== 'EUR') throw new Error(`ECB has no ${base} quote`)
   if (!rates[quote] && quote !== 'EUR') throw new Error(`ECB has no ${quote} quote`)
 
-  const eurToBase = base === 'EUR' ? 1 : rates[base];
+  const eurToBase = base === 'EUR' ? 1 : rates[base]
   const eurToQuote = quote === 'EUR' ? 1 : rates[quote];
   const rate = eurToQuote / eurToBase;
 
