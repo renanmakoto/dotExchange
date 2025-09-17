@@ -209,7 +209,7 @@ async function fetchEcbDailyCross(base, quote) {
 async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
   try {
     if (dateStr) {
-      const url = `https://api.frankfurter.app/${dateStr}?from=${base}&to=${quote}`;
+      const url = `https://api.frankfurter.app/${dateStr}?from=${base}&to=${quote}`
       const { data } = await httpFast.get(url);
       const rate = data?.rates?.[quote];
       if (!rate) throw new Error('No frankfurter historical rate');
