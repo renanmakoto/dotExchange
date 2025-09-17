@@ -200,7 +200,7 @@ async function fetchEcbDailyCross(base, quote) {
 
   const eurToBase = base === 'EUR' ? 1 : rates[base]
   const eurToQuote = quote === 'EUR' ? 1 : rates[quote]
-  const rate = eurToQuote / eurToBase;
+  const rate = eurToQuote / eurToBase
 
   return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' };
 }
