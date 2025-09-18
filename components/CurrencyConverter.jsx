@@ -218,7 +218,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
       const url = `https://api.frankfurter.app/latest?from=${base}&to=${quote}`
       const { data } = await httpFast.get(url)
       const rate = data?.rates?.[quote]
-      if (!rate) throw new Error('No frankfurter latest rate');
+      if (!rate) throw new Error('No frankfurter latest rate')
       return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'ECB/Frankfurter' };
     }
   } catch (e) {
