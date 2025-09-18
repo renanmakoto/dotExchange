@@ -227,7 +227,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
 
   try {
     if (dateStr) {
-      const url = `https://api.exchangerate.host/convert?from=${base}&to=${quote}&date=${dateStr}`;
+      const url = `https://api.exchangerate.host/convert?from=${base}&to=${quote}&date=${dateStr}`
       const { data } = await http.get(url);
       if (!data?.result) throw new Error('No result from exchangerate.host');
       return { rate: data.result, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' };
