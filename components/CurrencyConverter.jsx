@@ -222,7 +222,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
       return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'ECB/Frankfurter' }
     }
   } catch (e) {
-    console.log('[Frankfurter failed]', e?.message || e);
+    console.log('[Frankfurter failed]', e?.message || e)
   }
 
   try {
