@@ -270,7 +270,7 @@ async function fetchBtcUsd() {
       const tsISO = new Date().toISOString() // Coinbase does not return a timestamp
       return { usdPerBtc, timestampUTC: tsISO, hasTime: true, source: 'Coinbase' }
     }
-    throw new Error('No Coinbase BTC/USD');
+    throw new Error('No Coinbase BTC/USD')
   } catch (e) {
     console.log('[Coinbase failed]', e?.message || e);
   }
