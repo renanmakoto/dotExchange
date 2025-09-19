@@ -240,7 +240,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
     }
   } catch (e) {
     console.log('[FX fallback failed]', e?.message || e)
-    throw new Error('No fiat rate available');
+    throw new Error('No fiat rate available')
   }
 }
 
