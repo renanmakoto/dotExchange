@@ -252,7 +252,7 @@ async function fetchBtcUsd() {
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
     )
     const usd = data?.bitcoin?.usd
-    const tsSec = data?.bitcoin?.last_updated_at;
+    const tsSec = data?.bitcoin?.last_updated_at
     if (usd) {
       const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
       return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' };
