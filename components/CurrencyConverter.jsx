@@ -264,7 +264,7 @@ async function fetchBtcUsd() {
 
   //Coinbase
   try {
-    const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+    const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
     const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null;
     if (usdPerBtc) {
       const tsISO = new Date().toISOString(); // Coinbase does not return a timestamp
