@@ -259,7 +259,7 @@ async function fetchBtcUsd() {
     }
     throw new Error('No CoinGecko BTC/USD')
   } catch (e) {
-    console.log('[CoinGecko failed]', e?.message || e);
+    console.log('[CoinGecko failed]', e?.message || e)
   }
 
   //Coinbase
