@@ -233,7 +233,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
       return { rate: data.result, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' }
     } else {
       const url = `https://api.exchangerate.host/latest?base=${base}&symbols=${quote}`
-      const { data } = await http.get(url);
+      const { data } = await http.get(url)
       const rate = data?.rates?.[quote];
       if (!rate) throw new Error('No latest result from exchangerate.host');
       return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' };
