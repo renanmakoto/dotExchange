@@ -239,7 +239,7 @@ async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
       return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' }
     }
   } catch (e) {
-    console.log('[FX fallback failed]', e?.message || e);
+    console.log('[FX fallback failed]', e?.message || e)
     throw new Error('No fiat rate available');
   }
 }
