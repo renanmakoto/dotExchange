@@ -254,7 +254,7 @@ async function fetchBtcUsd() {
     const usd = data?.bitcoin?.usd
     const tsSec = data?.bitcoin?.last_updated_at
     if (usd) {
-      const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString();
+      const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString()
       return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' };
     }
     throw new Error('No CoinGecko BTC/USD');
