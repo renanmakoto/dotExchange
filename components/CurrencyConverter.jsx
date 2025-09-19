@@ -257,7 +257,7 @@ async function fetchBtcUsd() {
       const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString()
       return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' }
     }
-    throw new Error('No CoinGecko BTC/USD');
+    throw new Error('No CoinGecko BTC/USD')
   } catch (e) {
     console.log('[CoinGecko failed]', e?.message || e);
   }
