@@ -289,7 +289,7 @@ async function fetchBtcUsd() {
 }
 
 async function fetchBtcCross(base, quote) {
-  const core = await fetchBtcUsd();
+  const core = await fetchBtcUsd()
   const { usdPerBtc, timestampUTC, hasTime, source } = core;
 
   if (base === 'BTC' && quote === 'USD') return { rate: usdPerBtc, timestampUTC, hasTime, source };
