@@ -272,7 +272,7 @@ async function fetchBtcUsd() {
     }
     throw new Error('No Coinbase BTC/USD')
   } catch (e) {
-    console.log('[Coinbase failed]', e?.message || e);
+    console.log('[Coinbase failed]', e?.message || e)
   }
 
   //CoinDesk
