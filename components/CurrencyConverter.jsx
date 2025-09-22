@@ -279,7 +279,7 @@ async function fetchBtcUsd() {
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json')
     const usdPerBtc = data?.bpi?.USD?.rate_float
-    const tsISO = data?.time?.updatedISO;
+    const tsISO = data?.time?.updatedISO
     if (!usdPerBtc) throw new Error('No CoinDesk BTC/USD');
     return { usdPerBtc, timestampUTC: tsISO || new Date().toISOString(), hasTime: true, source: 'CoinDesk' };
   } catch (e) {
