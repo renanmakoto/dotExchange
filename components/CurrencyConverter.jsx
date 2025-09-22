@@ -283,7 +283,7 @@ async function fetchBtcUsd() {
     if (!usdPerBtc) throw new Error('No CoinDesk BTC/USD')
     return { usdPerBtc, timestampUTC: tsISO || new Date().toISOString(), hasTime: true, source: 'CoinDesk' }
   } catch (e) {
-    console.log('[CoinDesk failed]', e?.message || e);
+    console.log('[CoinDesk failed]', e?.message || e)
     throw new Error('No BTC/USD available from any source');
   }
 }
