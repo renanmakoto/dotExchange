@@ -309,10 +309,10 @@ async function fetchBtcCross(base, quote) {
 //UNIFIED ACCESS FOR ANY PAIR (BRL, CAD, USD, EUR, BTC)
 async function fetchAnyRate(base, quote) {
   if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' }
-  const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c);
+  const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c)
 
   if (base === 'BTC' || quote === 'BTC') {
-    return fetchBtcCross(base, quote);
+    return fetchBtcCross(base, quote)
   }
 
   if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
