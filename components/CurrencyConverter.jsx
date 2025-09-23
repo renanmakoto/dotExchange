@@ -296,7 +296,7 @@ async function fetchBtcCross(base, quote) {
   if (base === 'USD' && quote === 'BTC') return { rate: 1 / usdPerBtc, timestampUTC, hasTime, source }
 
   if (base === 'BTC') {
-    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote);
+    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote)
     return { rate: usdPerBtc * usdToQuote, timestampUTC, hasTime, source };
   }
   if (quote === 'BTC') {
