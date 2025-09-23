@@ -324,7 +324,7 @@ async function fetchAnyRate(base, quote) {
     }
   }
 
-  return fetchEcbDailyCross(base, quote);
+  return fetchEcbDailyCross(base, quote)
 }
 
 //MONTHLY SERIES (12 MONTH-END POINTS) WITH HISTORICAL SOURCES
