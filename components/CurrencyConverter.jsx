@@ -301,7 +301,7 @@ async function fetchBtcCross(base, quote) {
   }
   if (quote === 'BTC') {
     const { rate: baseToUsd } = await fetchEcbDailyCross(base, 'USD')
-    return { rate: baseToUsd / usdPerBtc, timestampUTC, hasTime, source };
+    return { rate: baseToUsd / usdPerBtc, timestampUTC, hasTime, source }
   }
   throw new Error('Unsupported BTC pair');
 }
