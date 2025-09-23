@@ -334,7 +334,7 @@ async function fetchMonthlySeries(base, quote) {
     new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d)
   )
 
-  const series = [];
+  const series = []
   for (const d of monthEnds) {
     const dayStr = yyyymmdd(d);
     try {
