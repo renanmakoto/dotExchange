@@ -336,7 +336,7 @@ async function fetchMonthlySeries(base, quote) {
 
   const series = []
   for (const d of monthEnds) {
-    const dayStr = yyyymmdd(d);
+    const dayStr = yyyymmdd(d)
     try {
       if (base === 'BTC' || quote === 'BTC') {
         const { usdPerBtc } = await fetchBtcUsd();
