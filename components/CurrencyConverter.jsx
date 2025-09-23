@@ -332,7 +332,7 @@ async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds()
   const labels = monthEnds.map((d) =>
     new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d)
-  );
+  )
 
   const series = [];
   for (const d of monthEnds) {
