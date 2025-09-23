@@ -317,7 +317,7 @@ async function fetchAnyRate(base, quote) {
 
   if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
     try {
-      return await fetchBcbPair(base, quote);
+      return await fetchBcbPair(base, quote)
     } catch (e) {
       console.log('[PTAX failed, will fallback to ECB]', e?.message || e);
       return fetchEcbDailyCross(base, quote);
