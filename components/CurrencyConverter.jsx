@@ -329,7 +329,7 @@ async function fetchAnyRate(base, quote) {
 
 //MONTHLY SERIES (12 MONTH-END POINTS) WITH HISTORICAL SOURCES
 async function fetchMonthlySeries(base, quote) {
-  const monthEnds = lastTwelveMonthEnds();
+  const monthEnds = lastTwelveMonthEnds()
   const labels = monthEnds.map((d) =>
     new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d)
   );
