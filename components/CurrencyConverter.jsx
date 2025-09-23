@@ -320,7 +320,7 @@ async function fetchAnyRate(base, quote) {
       return await fetchBcbPair(base, quote)
     } catch (e) {
       console.log('[PTAX failed, will fallback to ECB]', e?.message || e)
-      return fetchEcbDailyCross(base, quote);
+      return fetchEcbDailyCross(base, quote)
     }
   }
 
