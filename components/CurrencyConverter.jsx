@@ -349,7 +349,7 @@ async function fetchMonthlySeries(base, quote) {
         } else if (base === 'BTC' && quote === 'USD') {
           series.push(usdPerBtc);
         } else if (base === 'USD' && quote === 'BTC') {
-          series.push(1 / usdPerBtc);
+          series.push(1 / usdPerBtc)
         }
       } else {
         const { rate } = await fetchFiatRate(base, quote, dayStr);
