@@ -372,7 +372,7 @@ export default function CurrencyConverter() {
 
   const [pickerVisible, setPickerVisible] = useState({ which: null, open: false })
 
-  const [convertedText, setConvertedText] = useState('');
+  const [convertedText, setConvertedText] = useState('')
   const [rateTimestampUTC, setRateTimestampUTC] = useState('');
   const [rateHasTime, setRateHasTime] = useState(false);
   const [graphData, setGraphData] = useState([]);
