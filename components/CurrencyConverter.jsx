@@ -370,7 +370,7 @@ export default function CurrencyConverter() {
   const [from, setFrom] = useState('CAD')
   const [to, setTo] = useState('BRL')
 
-  const [pickerVisible, setPickerVisible] = useState({ which: null, open: false });
+  const [pickerVisible, setPickerVisible] = useState({ which: null, open: false })
 
   const [convertedText, setConvertedText] = useState('');
   const [rateTimestampUTC, setRateTimestampUTC] = useState('');
