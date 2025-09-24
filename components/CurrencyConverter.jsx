@@ -353,7 +353,7 @@ async function fetchMonthlySeries(base, quote) {
         }
       } else {
         const { rate } = await fetchFiatRate(base, quote, dayStr)
-        series.push(rate);
+        series.push(rate)
       }
     } catch (e) {
       console.log('[Monthly point failed]', base, quote, dayStr, e?.message || e);
