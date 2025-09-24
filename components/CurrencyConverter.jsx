@@ -362,7 +362,7 @@ async function fetchMonthlySeries(base, quote) {
   }
 
   const allZero = series.every((v) => !v || v === 0)
-  return { labels, series, allZero };
+  return { labels, series, allZero }
 }
 
 export default function CurrencyConverter() {
