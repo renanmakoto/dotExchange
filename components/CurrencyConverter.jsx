@@ -382,8 +382,8 @@ export default function CurrencyConverter() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const locationSuffix = useMemo(() => {
-    const loc = getLocationForCurrency(to);
-    return loc ? `, ${loc}` : '';
+    const loc = getLocationForCurrency(to)
+    return loc ? `, ${loc}` : ''
   }, [to]);
 
   const openPicker = (which) => setPickerVisible({ which, open: true });
