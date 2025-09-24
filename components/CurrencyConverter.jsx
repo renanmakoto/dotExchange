@@ -352,7 +352,7 @@ async function fetchMonthlySeries(base, quote) {
           series.push(1 / usdPerBtc)
         }
       } else {
-        const { rate } = await fetchFiatRate(base, quote, dayStr);
+        const { rate } = await fetchFiatRate(base, quote, dayStr)
         series.push(rate);
       }
     } catch (e) {
