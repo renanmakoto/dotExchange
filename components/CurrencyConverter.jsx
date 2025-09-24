@@ -367,7 +367,7 @@ async function fetchMonthlySeries(base, quote) {
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('1')
-  const [from, setFrom] = useState('CAD');
+  const [from, setFrom] = useState('CAD')
   const [to, setTo] = useState('BRL');
 
   const [pickerVisible, setPickerVisible] = useState({ which: null, open: false });
