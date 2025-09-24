@@ -378,7 +378,7 @@ export default function CurrencyConverter() {
   const [graphData, setGraphData] = useState([])
   const [graphLabels, setGraphLabels] = useState([])
   const [loading, setLoading] = useState(false)
-  const [loadingGraph, setLoadingGraph] = useState(false);
+  const [loadingGraph, setLoadingGraph] = useState(false)
   const [errorMsg, setErrorMsg] = useState('');
 
   const locationSuffix = useMemo(() => {
