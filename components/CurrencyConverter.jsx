@@ -357,7 +357,7 @@ async function fetchMonthlySeries(base, quote) {
       }
     } catch (e) {
       console.log('[Monthly point failed]', base, quote, dayStr, e?.message || e)
-      series.push(0);
+      series.push(0)
     }
   }
 
