@@ -361,7 +361,7 @@ async function fetchMonthlySeries(base, quote) {
     }
   }
 
-  const allZero = series.every((v) => !v || v === 0);
+  const allZero = series.every((v) => !v || v === 0)
   return { labels, series, allZero };
 }
 
