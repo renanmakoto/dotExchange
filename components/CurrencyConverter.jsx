@@ -374,7 +374,7 @@ export default function CurrencyConverter() {
 
   const [convertedText, setConvertedText] = useState('')
   const [rateTimestampUTC, setRateTimestampUTC] = useState('')
-  const [rateHasTime, setRateHasTime] = useState(false);
+  const [rateHasTime, setRateHasTime] = useState(false)
   const [graphData, setGraphData] = useState([]);
   const [graphLabels, setGraphLabels] = useState([]);
   const [loading, setLoading] = useState(false);
