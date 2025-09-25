@@ -397,7 +397,7 @@ export default function CurrencyConverter() {
   const switchCurrencies = () => {
     setFrom(to)
     setTo(from)
-    setConvertedText('');
+    setConvertedText('')
     setRateTimestampUTC('');
     setRateHasTime(false);
     setGraphData([]);
