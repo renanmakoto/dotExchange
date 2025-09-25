@@ -392,7 +392,7 @@ export default function CurrencyConverter() {
     if (pickerVisible.which === 'to') setTo(code)
     setPickerVisible({ which: null, open: false })
     setErrorMsg('')
-  };
+  }
 
   const switchCurrencies = () => {
     setFrom(to);
