@@ -388,7 +388,7 @@ export default function CurrencyConverter() {
 
   const openPicker = (which) => setPickerVisible({ which, open: true })
   const pickCurrency = (code) => {
-    if (pickerVisible.which === 'from') setFrom(code);
+    if (pickerVisible.which === 'from') setFrom(code)
     if (pickerVisible.which === 'to') setTo(code);
     setPickerVisible({ which: null, open: false });
     setErrorMsg('');
