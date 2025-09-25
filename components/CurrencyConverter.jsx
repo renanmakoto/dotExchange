@@ -400,7 +400,7 @@ export default function CurrencyConverter() {
     setConvertedText('')
     setRateTimestampUTC('')
     setRateHasTime(false)
-    setGraphData([]);
+    setGraphData([])
     setGraphLabels([]);
     setErrorMsg('');
   };
