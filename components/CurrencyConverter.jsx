@@ -384,7 +384,7 @@ export default function CurrencyConverter() {
   const locationSuffix = useMemo(() => {
     const loc = getLocationForCurrency(to)
     return loc ? `, ${loc}` : ''
-  }, [to]);
+  }, [to])
 
   const openPicker = (which) => setPickerVisible({ which, open: true });
   const pickCurrency = (code) => {
