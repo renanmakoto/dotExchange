@@ -402,7 +402,7 @@ export default function CurrencyConverter() {
     setRateHasTime(false)
     setGraphData([])
     setGraphLabels([])
-    setErrorMsg('');
+    setErrorMsg('')
   };
 
   //CONVERT HANDLER
