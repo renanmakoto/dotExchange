@@ -403,7 +403,7 @@ export default function CurrencyConverter() {
     setGraphData([])
     setGraphLabels([])
     setErrorMsg('')
-  };
+  }
 
   //CONVERT HANDLER
   const handleConvert = async () => {
