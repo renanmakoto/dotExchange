@@ -409,7 +409,7 @@ export default function CurrencyConverter() {
   const handleConvert = async () => {
     setLoading(true)
     setLoadingGraph(false)
-    setErrorMsg('');
+    setErrorMsg('')
     setConvertedText('');
     setRateTimestampUTC('');
     setRateHasTime(false);
