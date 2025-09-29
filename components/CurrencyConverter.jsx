@@ -410,7 +410,7 @@ export default function CurrencyConverter() {
     setLoading(true)
     setLoadingGraph(false)
     setErrorMsg('')
-    setConvertedText('');
+    setConvertedText('')
     setRateTimestampUTC('');
     setRateHasTime(false);
     setGraphData([]);
