@@ -420,7 +420,7 @@ export default function CurrencyConverter() {
     if (from === to) {
       setLoading(false)
       setErrorMsg('Please pick two different currencies for conversion.')
-      Vibration.vibrate(180);
+      Vibration.vibrate(180)
       return;
     }
 
