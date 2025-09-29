@@ -438,7 +438,7 @@ export default function CurrencyConverter() {
 
       const left = `${formatAmount(amt, from)} ${from}`
       const right = `${formatAmount(converted, to)} ${to}`
-      setConvertedText(`${left} = ${right}`);
+      setConvertedText(`${left} = ${right}`)
       setRateTimestampUTC(timestampUTC);
       setRateHasTime(hasTime);
       console.log('[Spot source]', source, 'timestamp:', timestampUTC);
