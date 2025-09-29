@@ -411,7 +411,7 @@ export default function CurrencyConverter() {
     setLoadingGraph(false)
     setErrorMsg('')
     setConvertedText('')
-    setRateTimestampUTC('');
+    setRateTimestampUTC('')
     setRateHasTime(false);
     setGraphData([]);
     setGraphLabels([]);
