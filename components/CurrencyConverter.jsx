@@ -421,7 +421,7 @@ export default function CurrencyConverter() {
       setLoading(false)
       setErrorMsg('Please pick two different currencies for conversion.')
       Vibration.vibrate(180)
-      return;
+      return
     }
 
     //SPOT CONVERSION
