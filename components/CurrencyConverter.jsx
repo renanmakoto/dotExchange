@@ -436,7 +436,7 @@ export default function CurrencyConverter() {
       const { rate, timestampUTC, hasTime, source } = await fetchAnyRate(from, to)
       const converted = amt * rate
 
-      const left = `${formatAmount(amt, from)} ${from}`;
+      const left = `${formatAmount(amt, from)} ${from}`
       const right = `${formatAmount(converted, to)} ${to}`;
       setConvertedText(`${left} = ${right}`);
       setRateTimestampUTC(timestampUTC);
