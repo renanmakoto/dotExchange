@@ -430,7 +430,7 @@ export default function CurrencyConverter() {
       if (isNaN(amt)) {
         setErrorMsg('Enter a valid amount')
         setLoading(false)
-        return;
+        return
       }
 
       const { rate, timestampUTC, hasTime, source } = await fetchAnyRate(from, to);
