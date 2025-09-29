@@ -414,7 +414,7 @@ export default function CurrencyConverter() {
     setRateTimestampUTC('')
     setRateHasTime(false)
     setGraphData([])
-    setGraphLabels([]);
+    setGraphLabels([])
 
     //SAME-CURRENCY GUARD
     if (from === to) {
