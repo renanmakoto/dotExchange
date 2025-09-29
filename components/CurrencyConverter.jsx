@@ -418,7 +418,7 @@ export default function CurrencyConverter() {
 
     //SAME-CURRENCY GUARD
     if (from === to) {
-      setLoading(false);
+      setLoading(false)
       setErrorMsg('Please pick two different currencies for conversion.');
       Vibration.vibrate(180);
       return;
