@@ -426,7 +426,7 @@ export default function CurrencyConverter() {
 
     //SPOT CONVERSION
     try {
-      const amt = parseFloat((amount || '').replace(',', '.'));
+      const amt = parseFloat((amount || '').replace(',', '.'))
       if (isNaN(amt)) {
         setErrorMsg('Enter a valid amount');
         setLoading(false);
