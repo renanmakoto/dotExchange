@@ -429,7 +429,7 @@ export default function CurrencyConverter() {
       const amt = parseFloat((amount || '').replace(',', '.'))
       if (isNaN(amt)) {
         setErrorMsg('Enter a valid amount')
-        setLoading(false);
+        setLoading(false)
         return;
       }
 
