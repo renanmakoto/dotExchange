@@ -446,7 +446,7 @@ export default function CurrencyConverter() {
       console.log('[Spot conversion failed]', from, to, e?.message || e)
       setErrorMsg('Failed to fetch exchange rate.')
       setLoading(false)
-      setLoadingGraph(false);
+      setLoadingGraph(false)
       return;
     }
 
