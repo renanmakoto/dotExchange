@@ -440,7 +440,7 @@ export default function CurrencyConverter() {
       const right = `${formatAmount(converted, to)} ${to}`
       setConvertedText(`${left} = ${right}`)
       setRateTimestampUTC(timestampUTC)
-      setRateHasTime(hasTime);
+      setRateHasTime(hasTime)
       console.log('[Spot source]', source, 'timestamp:', timestampUTC);
     } catch (e) {
       console.log('[Spot conversion failed]', from, to, e?.message || e);
