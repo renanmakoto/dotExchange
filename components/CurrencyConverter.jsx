@@ -447,7 +447,7 @@ export default function CurrencyConverter() {
       setErrorMsg('Failed to fetch exchange rate.')
       setLoading(false)
       setLoadingGraph(false)
-      return;
+      return
     }
 
     //MONTHLY SERIES (12 MONTHS)
