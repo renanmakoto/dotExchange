@@ -441,7 +441,7 @@ export default function CurrencyConverter() {
       setConvertedText(`${left} = ${right}`)
       setRateTimestampUTC(timestampUTC)
       setRateHasTime(hasTime)
-      console.log('[Spot source]', source, 'timestamp:', timestampUTC);
+      console.log('[Spot source]', source, 'timestamp:', timestampUTC)
     } catch (e) {
       console.log('[Spot conversion failed]', from, to, e?.message || e);
       setErrorMsg('Failed to fetch exchange rate.');
