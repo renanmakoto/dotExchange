@@ -443,7 +443,7 @@ export default function CurrencyConverter() {
       setRateHasTime(hasTime)
       console.log('[Spot source]', source, 'timestamp:', timestampUTC)
     } catch (e) {
-      console.log('[Spot conversion failed]', from, to, e?.message || e);
+      console.log('[Spot conversion failed]', from, to, e?.message || e)
       setErrorMsg('Failed to fetch exchange rate.');
       setLoading(false);
       setLoadingGraph(false);
