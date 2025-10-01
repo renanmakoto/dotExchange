@@ -467,7 +467,7 @@ export default function CurrencyConverter() {
         setGraphData(cleaned)
       }
     } catch (e) {
-      console.log('[Graph series failed]', from, to, e?.message || e);
+      console.log('[Graph series failed]', from, to, e?.message || e)
     } finally {
       setLoading(false);
       setLoadingGraph(false);
