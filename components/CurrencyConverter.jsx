@@ -459,7 +459,7 @@ export default function CurrencyConverter() {
         const flat = Array(labels.length).fill(rate)
         //ENSURE CHART NEVER GETS NAN/INFINITY
         const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0))
-        setGraphLabels(labels);
+        setGraphLabels(labels)
         setGraphData(cleaned);
       } else {
         const cleaned = series.map(v => (Number.isFinite(v) ? v : 0));
