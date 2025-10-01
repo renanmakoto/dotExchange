@@ -530,7 +530,7 @@ export default function CurrencyConverter() {
         </View>
       )}
 
-      {/* Graph (12 months) */}
+      {/* GRAPH (12 MONTHS) */}
       {loadingGraph && (
         <View style={styles.graphCard}>
           <Text style={styles.graphTitle}>Last 12 months</Text>
