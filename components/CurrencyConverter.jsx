@@ -472,7 +472,7 @@ export default function CurrencyConverter() {
       setLoading(false)
       setLoadingGraph(false)
     }
-  };
+  }
 
   const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC]);
 
