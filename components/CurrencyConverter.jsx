@@ -460,7 +460,7 @@ export default function CurrencyConverter() {
         //ENSURE CHART NEVER GETS NAN/INFINITY
         const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0))
         setGraphLabels(labels)
-        setGraphData(cleaned);
+        setGraphData(cleaned)
       } else {
         const cleaned = series.map(v => (Number.isFinite(v) ? v : 0));
         setGraphLabels(labels);
