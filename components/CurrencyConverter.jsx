@@ -464,7 +464,7 @@ export default function CurrencyConverter() {
       } else {
         const cleaned = series.map(v => (Number.isFinite(v) ? v : 0))
         setGraphLabels(labels)
-        setGraphData(cleaned);
+        setGraphData(cleaned)
       }
     } catch (e) {
       console.log('[Graph series failed]', from, to, e?.message || e);
