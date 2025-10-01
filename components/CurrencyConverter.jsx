@@ -455,7 +455,7 @@ export default function CurrencyConverter() {
       setLoadingGraph(true)
       const { labels, series, allZero } = await fetchMonthlySeries(from, to)
       if (allZero) {
-        const { rate } = await fetchAnyRate(from, to);
+        const { rate } = await fetchAnyRate(from, to)
         const flat = Array(labels.length).fill(rate);
         //ENSURE CHART NEVER GETS NAN/INFINITY
         const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0));
