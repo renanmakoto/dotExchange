@@ -470,7 +470,7 @@ export default function CurrencyConverter() {
       console.log('[Graph series failed]', from, to, e?.message || e)
     } finally {
       setLoading(false)
-      setLoadingGraph(false);
+      setLoadingGraph(false)
     }
   };
 
