@@ -597,7 +597,7 @@ export default function CurrencyConverter() {
         </Pressable>
       </Modal>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
