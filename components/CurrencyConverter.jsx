@@ -453,7 +453,7 @@ export default function CurrencyConverter() {
     //MONTHLY SERIES (12 MONTHS)
     try {
       setLoadingGraph(true)
-      const { labels, series, allZero } = await fetchMonthlySeries(from, to);
+      const { labels, series, allZero } = await fetchMonthlySeries(from, to)
       if (allZero) {
         const { rate } = await fetchAnyRate(from, to);
         const flat = Array(labels.length).fill(rate);
