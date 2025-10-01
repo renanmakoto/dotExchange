@@ -746,4 +746,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#3a3a3a',
     opacity: 0.6,
   },
-});
+})
