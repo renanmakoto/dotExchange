@@ -463,7 +463,7 @@ export default function CurrencyConverter() {
         setGraphData(cleaned)
       } else {
         const cleaned = series.map(v => (Number.isFinite(v) ? v : 0))
-        setGraphLabels(labels);
+        setGraphLabels(labels)
         setGraphData(cleaned);
       }
     } catch (e) {
