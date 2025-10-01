@@ -474,7 +474,7 @@ export default function CurrencyConverter() {
     }
   }
 
-  const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC]);
+  const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC])
 
   return (
     <View style={styles.container}>
