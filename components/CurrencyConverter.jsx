@@ -570,7 +570,7 @@ export default function CurrencyConverter() {
         </View>
       )}
 
-      {/* Currency picker */}
+      {/* CURRENCY PICKER */}
       <Modal
         visible={pickerVisible.open}
         transparent
