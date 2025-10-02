@@ -246,7 +246,7 @@ async function fetchFiatRate(base, quote, dateStr) {
 
 /* BTC: COINGECKO -> COINBASE -> COINDESK (last) */
 async function fetchBtcUsd() {
-  //CoinGecko
+  //COINGECKO
   try {
     const { data } = await httpFast.get(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
