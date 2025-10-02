@@ -143,7 +143,7 @@ function lastTwelveMonthEnds() {
 /*BCB PTAX FOR BRL PAIRS WITH UP TO 7-DAY ROLLBACK*/
 async function fetchBcbPair(base, quote) {
   const foreign = base === 'BRL' ? quote : base
-  let attempts = 0;
+  let attempts = 0
   let day = new Date()
 
   while (attempts < 7) {
