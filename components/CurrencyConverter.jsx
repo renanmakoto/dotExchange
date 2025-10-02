@@ -206,7 +206,7 @@ async function fetchEcbDailyCross(base, quote) {
 }
 
 //FRANKFURTER EXCHANGE.HOST FOR HISTORICAL & FALLBACK
-async function fetchFiatRate(base, quote, dateStr /* yyyy-mm-dd|null */) {
+async function fetchFiatRate(base, quote, dateStr) {
   try {
     if (dateStr) {
       const url = `https://api.frankfurter.app/${dateStr}?from=${base}&to=${quote}`
