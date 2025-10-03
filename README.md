@@ -22,7 +22,7 @@ TECHNOLOGIES USED:
 
 - [X] Design
 - [X] Functionalities
-- [ ] Uploaded to Google Play Store
+- [x] Uploaded to Google Play Store
 
 
 <img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
