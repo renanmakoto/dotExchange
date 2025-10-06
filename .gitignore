@@ -38,4 +38,6 @@ web-build/
 coverage/
 
 
+# Android Studio / IntelliJ
 .idea/
+*.iml
