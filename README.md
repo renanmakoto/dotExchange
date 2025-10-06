@@ -22,9 +22,9 @@ TECHNOLOGIES USED:
 - [X] Functionalities
 - [x] Uploaded to Google Play Store
 
-<h4 align="center">
+<p align="center">
 	https://play.google.com/store/apps/details?id=com.renanmakoto.dotexchange
-</h4>
+</p>
 
 
 <img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
