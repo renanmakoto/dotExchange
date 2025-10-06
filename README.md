@@ -35,4 +35,6 @@ TECHNOLOGIES USED:
 
 </div>
 
+<br>
+
 <p align="center">With ❤ by <img src=https://img.shields.io/badge/-dotExtension-black /> <p/>
