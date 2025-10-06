@@ -1,7 +1,7 @@
 # Node
 node_modules/
 package-lock.json
-.idea/
+
 
 # Expo
 .expo/
@@ -36,3 +36,6 @@ web-build/
 
 # Misc
 coverage/
+
+
+.idea/
