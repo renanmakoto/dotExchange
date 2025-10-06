@@ -14,14 +14,15 @@ TECHNOLOGIES USED:
 <a href="https://developer.android.com/studio"><img src="https://1.bp.blogspot.com/-LgTa-xDiknI/X4EflN56boI/AAAAAAAAPuk/24YyKnqiGkwRS9-_9suPKkfsAwO4wHYEgCLcBGAsYHQ/s0/image9.png" style="width: 64px; height: 64px" /></a>
 <a href="https://expo.dev/"><img src="https://raw.githubusercontent.com/expo/logos/main/png/logo-type-a.png" style="width: 64px; height: 64px" /></a>
 
-<h4 align="center"> 
-</h4>
+
 
 ### Features
 
 - [X] Design
 - [X] Functionalities
 - [x] Uploaded to Google Play Store
+
+
 
 
 <img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
