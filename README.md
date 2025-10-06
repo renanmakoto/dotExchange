@@ -28,6 +28,7 @@ TECHNOLOGIES USED:
 	https://play.google.com/store/apps/details?id=com.renanmakoto.dotexchange
 </p>
 
+<br>
 
 <img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
 
