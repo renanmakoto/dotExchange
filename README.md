@@ -22,6 +22,8 @@ TECHNOLOGIES USED:
 - [X] Functionalities
 - [x] Uploaded to Google Play Store
 
+<h4> Google Play Store link to install dotWeather: </h4>
+
 <p align="center">
 	https://play.google.com/store/apps/details?id=com.renanmakoto.dotexchange
 </p>
