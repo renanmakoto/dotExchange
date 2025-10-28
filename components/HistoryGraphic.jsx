@@ -15,7 +15,7 @@ const GRAPH_PADDING_LEFT = 8
 const GRAPH_PADDING_RIGHT = 8
 const CHART_RIGHT_EXTENSION = 6
 const CARD_RIGHT_EXTENSION = 0
-const OUTER_GUTTER = 24 // graph section horizontal margins from parent container
+const OUTER_GUTTER = 24
 
 export default function HistoryGraphic({
   data,
