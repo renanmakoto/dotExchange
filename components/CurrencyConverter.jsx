@@ -488,7 +488,6 @@ export default function CurrencyConverter() {
       return
     }
 
-    //SPOT CONVERSION
     try {
       const amt = parseFloat((amount || '').replace(',', '.'))
       if (isNaN(amt)) {
