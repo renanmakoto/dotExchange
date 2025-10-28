@@ -516,7 +516,6 @@ export default function CurrencyConverter() {
 
     const isBitcoinPair = from === 'BTC' || to === 'BTC'
     if (isBitcoinPair) {
-      // Skip historical graph for Bitcoin conversions
       setLoading(false)
       setLoadingGraph(false)
       return
