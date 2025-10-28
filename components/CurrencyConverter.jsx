@@ -469,7 +469,6 @@ export default function CurrencyConverter() {
     setErrorMsg('')
   }
 
-  //CONVERT HANDLER
   const handleConvert = async () => {
     setLoading(true)
     setLoadingGraph(false)
