@@ -522,7 +522,6 @@ export default function CurrencyConverter() {
       return
     }
 
-    //MONTHLY SERIES (12 MONTHS)
     try {
       setLoadingGraph(true)
       const { labels, series, allZero } = await fetchMonthlySeries(from, to)
