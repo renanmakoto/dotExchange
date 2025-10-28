@@ -1,18 +1,37 @@
 import React, { useMemo, useState } from 'react'
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
-  Modal, FlatList, Pressable, Dimensions, Vibration
+  Modal, FlatList, Pressable, Vibration, ScrollView,
+  KeyboardAvoidingView, Platform,
 } from 'react-native'
 import axios from 'axios'
-import { LineChart } from 'react-native-chart-kit'
-
-const SCREEN_W = Dimensions.get('window').width
+import HistoryGraphic from './HistoryGraphic'
+import AdPlaceholder from './AdPlaceholder'
+import Header from './Header'
+import Footer from './Footer'
 
 
 const HAS_INTL =
   typeof Intl !== 'undefined' &&
   typeof Intl.NumberFormat === 'function' &&
   typeof Intl.DateTimeFormat === 'function'
+
+const BRAND_PRIMARY = '#00ADA2'
+const BRAND_NEUTRAL = '#858585'
+const BRAND_LIGHT = '#FFFFFF'
+
+const primaryAlpha = (opacity) => `rgba(0,173,162,${opacity})`
+const neutralAlpha = (opacity) => `rgba(133,133,133,${opacity})`
+
+const SHOW_AD_PLACEHOLDER = false
+
+function formatMonthLabel(dateObj) {
+  if (HAS_INTL) {
+    return new Intl.DateTimeFormat('en-US', { month: 'short' }).format(dateObj)
+  }
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return months[dateObj.getUTCMonth()]
+}
 
 function normalizeUTC(str) {
   if (!str) return null
@@ -327,42 +346,87 @@ async function fetchAnyRate(base, quote) {
   return fetchEcbDailyCross(base, quote)
 }
 
+//BTC-SPECIFIC HISTORICAL SERIES
+async function fetchBtcMonthlySeries(base, quote) {
+  const monthEnds = lastTwelveMonthEnds()
+  const labels = monthEnds.map((d) => formatMonthLabel(d))
+  const otherCurrency = base === 'BTC' ? quote : base
+
+  const supported = ['USD', 'CAD', 'EUR', 'BRL']
+  if (!supported.includes(otherCurrency)) {
+    throw new Error(`BTC historical series not available for ${otherCurrency}`)
+  }
+
+  try {
+    const { data } = await httpFast.get(
+      'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart',
+      {
+        params: {
+          vs_currency: otherCurrency.toLowerCase(),
+          days: 370,
+          interval: 'daily',
+        },
+      }
+    )
+
+    const prices = Array.isArray(data?.prices) ? data.prices : []
+    if (!prices.length) throw new Error('Empty BTC series')
+
+    const series = monthEnds.map((d) => {
+      const target = d.getTime()
+      let closestDiff = Infinity
+      let closestPrice = null
+
+      for (const [timestamp, price] of prices) {
+        if (!Number.isFinite(price)) continue
+        const diff = Math.abs(Number(timestamp) - target)
+        if (diff < closestDiff) {
+          closestDiff = diff
+          closestPrice = price
+        }
+      }
+
+      if (!Number.isFinite(closestPrice) || closestPrice <= 0) return 0
+      if (quote === 'BTC') {
+        return closestPrice > 0 ? 1 / closestPrice : 0
+      }
+      return closestPrice
+    })
+
+    const cleaned = series.map((v) => (Number.isFinite(v) && v > 0 ? v : 0))
+    const allZero = cleaned.every((v) => !v)
+    return { labels, series: cleaned, allZero }
+  } catch (e) {
+    console.log('[BTC monthly series failed]', base, quote, e?.message || e)
+    return { labels, series: [], allZero: true }
+  }
+}
+
 //MONTHLY SERIES (12 MONTH-END POINTS) WITH HISTORICAL SOURCES
 async function fetchMonthlySeries(base, quote) {
-  const monthEnds = lastTwelveMonthEnds()
-  const labels = monthEnds.map((d) =>
-    new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d)
-  )
+  if (base === 'BTC' || quote === 'BTC') {
+    const btcSeries = await fetchBtcMonthlySeries(base, quote)
+    return btcSeries
+  }
 
+  const monthEnds = lastTwelveMonthEnds()
+  const labels = monthEnds.map((d) => formatMonthLabel(d))
   const series = []
+
   for (const d of monthEnds) {
     const dayStr = yyyymmdd(d)
     try {
-      if (base === 'BTC' || quote === 'BTC') {
-        const { usdPerBtc } = await fetchBtcUsd()
-        if (base === 'BTC' && quote !== 'USD') {
-          const { rate: usdToQuote } = await fetchFiatRate('USD', quote, dayStr)
-          series.push(usdPerBtc * usdToQuote)
-        } else if (quote === 'BTC' && base !== 'USD') {
-          const { rate: baseToUsd } = await fetchFiatRate(base, 'USD', dayStr)
-          series.push(baseToUsd / usdPerBtc)
-        } else if (base === 'BTC' && quote === 'USD') {
-          series.push(usdPerBtc)
-        } else if (base === 'USD' && quote === 'BTC') {
-          series.push(1 / usdPerBtc)
-        }
-      } else {
-        const { rate } = await fetchFiatRate(base, quote, dayStr)
-        series.push(rate)
-      }
+      const { rate } = await fetchFiatRate(base, quote, dayStr)
+      series.push(rate)
     } catch (e) {
       console.log('[Monthly point failed]', base, quote, dayStr, e?.message || e)
       series.push(0)
     }
   }
 
-  const allZero = series.every((v) => !v || v === 0)
-  return { labels, series, allZero }
+  const cleaned = series.map((v) => (Number.isFinite(v) ? v : 0))
+  const allZero = cleaned.every((v) => !v)
+  return { labels, series: cleaned, allZero }
 }
 
 export default function CurrencyConverter() {
@@ -450,6 +514,14 @@ export default function CurrencyConverter() {
       return
     }
 
+    const isBitcoinPair = from === 'BTC' || to === 'BTC'
+    if (isBitcoinPair) {
+      // Skip historical graph for Bitcoin conversions
+      setLoading(false)
+      setLoadingGraph(false)
+      return
+    }
+
     //MONTHLY SERIES (12 MONTHS)
     try {
       setLoadingGraph(true)
@@ -475,106 +547,110 @@ export default function CurrencyConverter() {
   }
 
   const { timeStr, dateStr } = useMemo(() => parseTimestampParts(rateTimestampUTC), [rateTimestampUTC])
+  const rateLineText = rateHasTime
+    ? `as of ${timeStr}, ${dateStr}${locationSuffix}`
+    : `as of ${dateStr}${locationSuffix}`
 
   return (
-    <View style={styles.container}>
-      {/* AMOUNT */}
-      <TextInput
-        style={styles.input}
-        keyboardType="decimal-pad"
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="0.00"
-        placeholderTextColor="#9aa0a6"
-      />
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      overScrollMode='never'
+    >
+      <Header />
+      <AdPlaceholder visible={SHOW_AD_PLACEHOLDER} />
 
-      {/* FROM / TO */}
-      <View style={styles.row}>
-        <TouchableOpacity style={styles.selector} onPress={() => openPicker('from')}>
-          <Text style={styles.selectorLabel}>From</Text>
-          <Text style={styles.selectorValue}>{from}</Text>
-        </TouchableOpacity>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardHeading}>Currency converter</Text>
+        </View>
 
-        <TouchableOpacity style={styles.swapBtn} onPress={switchCurrencies}>
-          <Text style={styles.swapBtnText}>⇆</Text>
-        </TouchableOpacity>
+        <View style={styles.formContent}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.amountBlock}
+          >
+            <Text style={styles.label}>Amount</Text>
+            <TextInput
+              style={styles.amountInput}
+              keyboardType='decimal-pad'
+              value={amount}
+              onChangeText={setAmount}
+              placeholder='Enter amount'
+              placeholderTextColor={neutralAlpha(0.6)}
+            />
+          </KeyboardAvoidingView>
 
-        <TouchableOpacity style={styles.selector} onPress={() => openPicker('to')}>
-          <Text style={styles.selectorLabel}>To</Text>
-          <Text style={styles.selectorValue}>{to}</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.selectionRow}>
+            <TouchableOpacity style={[styles.selector, styles.selectorLeft]} onPress={() => openPicker('from')}>
+              <Text style={styles.selectorLabel}>From</Text>
+              <Text style={styles.selectorValue}>{from}</Text>
+            </TouchableOpacity>
 
-      {/* CONVERT */}
-      <TouchableOpacity style={styles.convertBtn} onPress={handleConvert} disabled={loading}>
-        <Text style={styles.convertBtnText}>{loading ? 'Converting…' : 'Convert'}</Text>
-      </TouchableOpacity>
+            <TouchableOpacity style={styles.swapButton} onPress={switchCurrencies}>
+              <Text style={styles.swapButtonText}>⇆</Text>
+            </TouchableOpacity>
 
-      {/* RESULT AND ERROR */}
-      {!!convertedText && <Text style={styles.result}>{convertedText}</Text>}
-      {!!errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
+            <TouchableOpacity style={[styles.selector, styles.selectorRight]} onPress={() => openPicker('to')}>
+              <Text style={styles.selectorLabel}>To</Text>
+              <Text style={styles.selectorValue}>{to}</Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* RATE DATE/TIME */}
-      {!!rateTimestampUTC && (
-        <View style={styles.rateBlock}>
-          <Text style={styles.rateTitle}>Latest available rate</Text>
-          {rateHasTime ? (
-            <Text style={styles.rateLine}>
-              as of {timeStr}, {dateStr}{locationSuffix}
+          <TouchableOpacity
+            style={[styles.actionButton, loading && styles.actionButtonDisabled]}
+            onPress={handleConvert}
+            disabled={loading}
+          >
+            <Text style={styles.actionButtonText}>
+              {loading ? 'Converting…' : 'Convert now'}
             </Text>
-          ) : (
-            <Text style={styles.rateLine}>
-              as of {dateStr}{locationSuffix}
-            </Text>
+          </TouchableOpacity>
+
+          {!!convertedText && (
+            <View style={styles.resultPill}>
+              <Text style={styles.resultText}>{convertedText}</Text>
+            </View>
+          )}
+
+          {!!errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+
+          {!!rateTimestampUTC && (
+            <View style={styles.rateBlock}>
+              <Text style={styles.rateTitle}>Latest available rate</Text>
+              <Text style={styles.rateSubtitle}>{rateLineText}</Text>
+            </View>
           )}
         </View>
-      )}
 
-      {/* GRAPH (12 MONTHS) */}
+      </View>
+
       {loadingGraph && (
-        <View style={styles.graphCard}>
-          <Text style={styles.graphTitle}>Last 12 months</Text>
-          <Text style={styles.graphLoading}>Generating graph…</Text>
+        <View style={[styles.graphSection, styles.graphSectionInner]}>
+          <View style={styles.graphSkeleton}>
+            <Text style={styles.graphSkeletonTitle}>Loading 12 month trend…</Text>
+          </View>
         </View>
       )}
 
       {!loadingGraph && graphData.length > 0 && (
-        <View style={styles.graphCard}>
-          <Text style={styles.graphTitle}>Last 12 months</Text>
-          <LineChart
-            data={{
-              labels: graphLabels,
-              datasets: [{ data: graphData }],
-            }}
-            width={SCREEN_W - 32}
-            height={240}
-            fromZero
-            withVerticalLines={false}
-            withHorizontalLines
-            withInnerLines={false}
-            yLabelsOffset={8}
-            xLabelsOffset={2}
-            chartConfig={{
-              backgroundColor: '#1f1f1f',
-              backgroundGradientFrom: '#1f1f1f',
-              backgroundGradientTo: '#1f1f1f',
-              decimalPlaces: (from === 'BTC' || to === 'BTC') ? 6 : 4,
-              color: (o = 1) => `rgba(255,255,255,${o})`,
-              labelColor: (o = 1) => `rgba(255,255,255,${o})`,
-              propsForDots: { r: '3', strokeWidth: '2', stroke: '#00ADA2' },
-              propsForBackgroundLines: { strokeDasharray: '' },
-            }}
-            bezier
-            style={{ borderRadius: 12 }}
+        <View style={[styles.graphSection, styles.graphSectionInner]}>
+          <HistoryGraphic
+            data={graphData}
+            labels={graphLabels}
+            decimalPlaces={from === 'BTC' || to === 'BTC' ? 6 : 4}
           />
         </View>
       )}
 
-      {/* CURRENCY PICKER */}
+      <Footer />
+
       <Modal
         visible={pickerVisible.open}
         transparent
-        animationType="fade"
+        animationType='fade'
         onRequestClose={() => setPickerVisible({ which: null, open: false })}
       >
         <Pressable style={styles.modalBackdrop} onPress={() => setPickerVisible({ which: null, open: false })}>
@@ -596,154 +672,300 @@ export default function CurrencyConverter() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
+    flex: 1,
+    alignSelf: 'stretch',
+    width: '100%',
+    backgroundColor: 'transparent',
+  },
+  scrollContainer: {
+    width: '100%',
     alignItems: 'center',
-    padding: 20,
+    paddingBottom: 56,
+    paddingHorizontal: 0,
   },
-  input: {
-    fontSize: 30,
+  card: {
+    width: 370,
+    maxWidth: 820,
+    alignSelf: 'stretch',
+    marginHorizontal: 8,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 24,
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    borderWidth: 0,
+    borderColor: 'transparent',
+    shadowColor: 'rgba(0,173,162,0.35)',
+    shadowOpacity: 0.32,
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: 18 },
+    elevation: 9,
+    alignItems: 'center',
+  },
+  cardHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+    width: '100%',
+  },
+  cardHeading: {
+    color: BRAND_PRIMARY,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    lineHeight: 30,
+  },
+  formContent: {
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
+  amountBlock: {
+    width: '100%',
+    maxWidth: 420,
+    marginTop: 10,
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+  label: {
+    color: neutralAlpha(0.65),
+    fontSize: 12,
+    lineHeight: 18,
     marginBottom: 12,
-    backgroundColor: 'white',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minWidth: 220,
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
     textAlign: 'center',
-    borderRadius: 12,
   },
-  row: {
+  amountInput: {
+    width: '100%',
+    borderRadius: 20,
+    backgroundColor: primaryAlpha(0.08),
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.28),
+    fontSize: 20,
+    fontWeight: '700',
+    color: BRAND_PRIMARY,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    textAlign: 'center',
+    lineHeight: 24,
+    shadowColor: primaryAlpha(0.3),
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  selectionRow: {
+    marginTop: 36,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    width: '100%',
   },
   selector: {
-    backgroundColor: '#2b2b2b',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    minWidth: 120,
+    flex: 1,
+    backgroundColor: primaryAlpha(0.06),
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.22),
+  },
+  selectorLeft: {
+    marginRight: 20,
+  },
+  selectorRight: {
+    marginLeft: 20,
   },
   selectorLabel: {
-    fontSize: 12,
-    color: '#9aa0a6',
-    marginBottom: 2,
-  },
-  selectorValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  swapBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#00ADA2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  swapBtnText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  convertBtn: {
-    marginTop: 6,
-    backgroundColor: '#00ADA2',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  convertBtnText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  result: {
-    fontSize: 20,
-    marginTop: 18,
-    color: 'white',
+    color: neutralAlpha(0.65),
+    fontSize: 10.5,
+    lineHeight: 14,
+    marginBottom: 8,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
     textAlign: 'center',
   },
-  error: {
-    marginTop: 8,
-    color: '#ff6b6b',
+  selectorValue: {
+    color: BRAND_PRIMARY,
+    fontSize: 18,
+    fontWeight: '700',
+    lineHeight: 22,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  swapButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: BRAND_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.28),
+    shadowColor: primaryAlpha(0.26),
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  swapButtonText: {
+    color: BRAND_PRIMARY,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  actionButton: {
+    marginTop: 28,
+    borderRadius: 16,
+    backgroundColor: BRAND_PRIMARY,
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.5),
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: primaryAlpha(0.45),
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 7,
+    width: '100%',
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+  },
+  actionButtonText: {
+    color: BRAND_LIGHT,
     fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    lineHeight: 18,
+  },
+  resultPill: {
+    marginTop: 24,
+    backgroundColor: primaryAlpha(0.1),
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.4),
+    width: '100%',
+  },
+  resultText: {
+    color: BRAND_PRIMARY,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  errorText: {
+    marginTop: 18,
+    color: BRAND_NEUTRAL,
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '600',
+    width: '100%',
   },
   rateBlock: {
-    marginTop: 14,
+    marginTop: 30,
     alignItems: 'center',
+    width: '100%',
   },
   rateTitle: {
-    color: '#9aa0a6',
-    fontSize: 14,
+    color: neutralAlpha(0.85),
+    fontSize: 13,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    lineHeight: 18,
   },
-  rateLine: {
-    color: '#fff',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  graphCard: {
+  rateSubtitle: {
+    color: BRAND_PRIMARY,
+    fontSize: 15,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 22,
     width: '100%',
-    marginTop: 18,
-    padding: 12,
-    backgroundColor: '#1f1f1f',
-    borderRadius: 12,
   },
-  graphTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
+  graphSection: {
+    width: '100%',
+    maxWidth: 880,
+    alignItems: 'center',
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    marginTop: 8,
+    marginBottom: 24,
   },
-  graphLoading: {
-    color: '#9aa0a6',
-    fontSize: 14,
-    marginTop: 6,
+  graphSectionInner: {
+    paddingHorizontal: 0,
+  },
+  graphSkeleton: {
+    width: '100%',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.25),
+    borderStyle: 'dashed',
+    paddingVertical: 30,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: "#FFFFFF"
+  },
+  graphSkeletonTitle: {
+    color: neutralAlpha(0.8),
+    fontSize: 15,
+    lineHeight: 20,
+    backgroundColor: "#FFFFFF"
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: primaryAlpha(0.45),
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   modalSheet: {
-    backgroundColor: '#2b2b2b',
-    borderRadius: 14,
-    padding: 16,
-    maxHeight: '70%',
+    backgroundColor: BRAND_LIGHT,
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    maxHeight: '72%',
+    borderWidth: 1,
+    borderColor: primaryAlpha(0.3),
   },
   modalTitle: {
-    color: '#fff',
-    fontSize: 16,
+    color: BRAND_PRIMARY,
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 10,
+    marginBottom: 12,
+    lineHeight: 24,
   },
   modalItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   modalItemCode: {
-    width: 48,
-    color: '#00ADA2',
+    width: 56,
+    color: BRAND_PRIMARY,
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: 18,
+    lineHeight: 24,
   },
   modalItemName: {
-    color: '#fff',
-    fontSize: 14,
+    flex: 1,
+    color: BRAND_NEUTRAL,
+    fontSize: 15,
+    lineHeight: 22,
   },
   separator: {
     height: 1,
-    backgroundColor: '#3a3a3a',
-    opacity: 0.6,
+    backgroundColor: neutralAlpha(0.2),
   },
 })

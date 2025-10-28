@@ -4,21 +4,25 @@ import { View, StyleSheet, Text } from 'react-native'
 export default function Header() {
   return (
     <View style={styles.container}>
-        <Text style={styles.footerText}>dotExchange</Text>
+      <Text style={styles.title}>dotExchange</Text>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#858585',
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 100,
+    paddingVertical: 15,
+    paddingHorizontal: 12,
   },
-  footerText: {
-    fontSize: 50,
-    color: "#00ADA2",
-    fontWeight: 'bold',
-  }
+  title: {
+    fontSize: 24,
+    lineHeight: 28,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+  },
 })
