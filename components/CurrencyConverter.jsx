@@ -402,7 +402,6 @@ async function fetchBtcMonthlySeries(base, quote) {
   }
 }
 
-//MONTHLY SERIES (12 MONTH-END POINTS) WITH HISTORICAL SOURCES
 async function fetchMonthlySeries(base, quote) {
   if (base === 'BTC' || quote === 'BTC') {
     const btcSeries = await fetchBtcMonthlySeries(base, quote)
