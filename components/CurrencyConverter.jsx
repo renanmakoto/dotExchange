@@ -346,7 +346,6 @@ async function fetchAnyRate(base, quote) {
   return fetchEcbDailyCross(base, quote)
 }
 
-//BTC-SPECIFIC HISTORICAL SERIES
 async function fetchBtcMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds()
   const labels = monthEnds.map((d) => formatMonthLabel(d))
