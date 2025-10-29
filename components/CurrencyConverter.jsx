@@ -428,9 +428,9 @@ async function fetchMonthlySeries(base, quote) {
 }
 
 export default function CurrencyConverter() {
-  const [amount, setAmount] = useState('1')
-  const [from, setFrom] = useState('CAD')
-  const [to, setTo] = useState('BRL')
+  const [amount, setAmount] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
 
   const [pickerVisible, setPickerVisible] = useState({ which: null, open: false })
 
@@ -476,6 +476,13 @@ export default function CurrencyConverter() {
     setRateHasTime(false)
     setGraphData([])
     setGraphLabels([])
+
+    if (!from || !to) {
+      setLoading(false)
+      setErrorMsg('Select both currencies to convert.')
+      Vibration.vibrate(180)
+      return
+    }
 
     if (from === to) {
       setLoading(false)
@@ -578,7 +585,9 @@ export default function CurrencyConverter() {
           <View style={styles.selectionRow}>
             <TouchableOpacity style={[styles.selector, styles.selectorLeft]} onPress={() => openPicker('from')}>
               <Text style={styles.selectorLabel}>From</Text>
-              <Text style={styles.selectorValue}>{from}</Text>
+              <Text style={[styles.selectorValue, !from && styles.selectorPlaceholder]}>
+                {from || 'Select'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.swapButton} onPress={switchCurrencies}>
@@ -587,7 +596,9 @@ export default function CurrencyConverter() {
 
             <TouchableOpacity style={[styles.selector, styles.selectorRight]} onPress={() => openPicker('to')}>
               <Text style={styles.selectorLabel}>To</Text>
-              <Text style={styles.selectorValue}>{to}</Text>
+              <Text style={[styles.selectorValue, !to && styles.selectorPlaceholder]}>
+                {to || 'Select'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -791,6 +802,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     letterSpacing: 0.3,
     textAlign: 'center',
+  },
+  selectorPlaceholder: {
+    color: neutralAlpha(0.6),
   },
   swapButton: {
     width: 52,
