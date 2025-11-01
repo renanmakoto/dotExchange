@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "dotExchange",
-    "slug": "dotcoin",
-    "version": "v1.0.1",
+    "slug": "dotexchange",
+    "version": "v1.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,7 +32,7 @@
     },
     "android": {
       "package": "com.renanmakoto.dotexchange",
-      "versionCode": 20,
+      "versionCode": 21,
       "jsEngine": "hermes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
