@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "dotExchange",
-    "slug": "dotexchange",
-    "version": "v1.1.1",
+    "slug": "dotcoin",
+    "version": "v2.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -48,5 +48,8 @@
       }
     },
     "owner": "renanmakoto"
+  },
+  "cli": {
+    "appVersionSource": "local"
   }
 }
