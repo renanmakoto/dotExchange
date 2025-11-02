@@ -23,6 +23,7 @@ export default function HistoryGraphic({
   height = 260,
   decimalPlaces = 4,
   yAxisSuffix = "",
+  yPaddingFactor = 0.12,
 }) {
   if (!data?.length) return null
 
@@ -49,10 +50,55 @@ export default function HistoryGraphic({
     [data]
   )
 
+  const [axisMin, axisMax] = useMemo(() => {
+    const finiteValues = sanitizedData.filter((value) => Number.isFinite(value))
+    if (!finiteValues.length) return [0, 0]
+
+    const min = Math.min(...finiteValues)
+    const max = Math.max(...finiteValues)
+    const range = max - min
+
+    const padding =
+      range > 0
+        ? range * yPaddingFactor
+        : Math.max(Math.abs(max), 1) * (yPaddingFactor / 2)
+
+    return [min - padding, max + padding]
+  }, [sanitizedData, yPaddingFactor])
+
   const sanitizedLabels = useMemo(
     () => labels.map((label) => (label ?? "").toString()),
     [labels]
   )
+
+  const chartData = useMemo(() => {
+    const datasets = [
+      {
+        data: sanitizedData,
+        color: (opacity = 1) => `rgba(0,173,162,${opacity})`,
+        strokeWidth: 2,
+      },
+    ]
+
+    if (
+      sanitizedData.length > 0 &&
+      Number.isFinite(axisMin) &&
+      Number.isFinite(axisMax) &&
+      axisMin !== axisMax
+    ) {
+      datasets.push({
+        data: [axisMin, axisMax],
+        withDots: false,
+        strokeWidth: 0,
+        color: () => 'rgba(0,0,0,0)',
+      })
+    }
+
+    return {
+      labels: sanitizedLabels,
+      datasets,
+    }
+  }, [sanitizedData, sanitizedLabels, axisMin, axisMax])
 
   const chartConfig = useMemo(
     () => ({
@@ -95,10 +141,7 @@ export default function HistoryGraphic({
       }}
     >
       <LineChart
-        data={{
-          labels: sanitizedLabels,
-          datasets: [{ data: sanitizedData }],
-        }}
+        data={chartData}
         width={chartWidth + CHART_RIGHT_EXTENSION + GRAPH_PADDING_RIGHT}
         height={height}
         withInnerLines={false}
@@ -110,7 +153,7 @@ export default function HistoryGraphic({
         chartConfig={chartConfig}
         bezier
         style={[styles.chart, { marginRight: -(CHART_RIGHT_EXTENSION + GRAPH_PADDING_RIGHT) }]}
-      />
+     />
 
     </View>
   )

@@ -1,34 +1,54 @@
 import React, { useEffect, useMemo } from 'react'
-import { View, StyleSheet, StatusBar, Platform, SafeAreaView } from 'react-native'
+import { View, StyleSheet, StatusBar, Platform } from 'react-native'
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as SystemUI from 'expo-system-ui'
 import CurrencyConverter from './components/CurrencyConverter'
 
-export default function App() {
-  useEffect(() => {
-    StatusBar.setBarStyle('light-content')
-    if (Platform.OS === 'android') {
-      StatusBar.setBackgroundColor('#00ADA2', true)
-      StatusBar.setTranslucent(false)
-    }
-  }, [])
+const BRAND_COLOR = '#00ADA2'
 
-  const statusBarHeight = useMemo(
-    () => (Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44),
-    [],
-  )
+function RootLayout() {
+  const insets = useSafeAreaInsets()
+
+  const topInset = useMemo(() => {
+    if (insets.top > 0) return insets.top
+    return Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0
+  }, [insets.top])
+
+  const bottomInset = useMemo(() => Math.max(insets.bottom, 0), [insets.bottom])
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#00ADA2" />
+    <View style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" />
       <View style={styles.backgroundAccent} />
       <View style={styles.backgroundGlow} />
-      <View style={styles.content}>
+      <View
+        style={[
+          styles.content,
+          {
+            paddingTop: 12 + topInset,
+            paddingBottom: 6 + bottomInset,
+          },
+        ]}
+      >
         <CurrencyConverter />
       </View>
       <View
-        pointerEvents='none'
-        style={[styles.statusBarOverlay, { height: statusBarHeight }]}
+        pointerEvents="none"
+        style={[styles.statusBarOverlay, { height: topInset }]}
       />
-    </SafeAreaView>
+    </View>
+  )
+}
+
+export default function App() {
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(BRAND_COLOR).catch(() => {})
+  }, [])
+
+  return (
+    <SafeAreaProvider>
+      <RootLayout />
+    </SafeAreaProvider>
   )
 }
 

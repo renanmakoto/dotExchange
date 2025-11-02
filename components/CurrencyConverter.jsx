@@ -135,16 +135,16 @@ function parseTimestampParts(utcString) {
 
 //DATE HELPERS FOR BCB AND HISTORICAL QUERIES
 function mmddyyyy(d) {
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const yyyy = d.getFullYear()
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(d.getUTCDate()).padStart(2, '0')
+  const yyyy = d.getUTCFullYear()
   return `${mm}-${dd}-${yyyy}`
 }
 
 function yyyymmdd(d) {
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const yyyy = d.getFullYear()
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(d.getUTCDate()).padStart(2, '0')
+  const yyyy = d.getUTCFullYear()
   return `${yyyy}-${mm}-${dd}`
 }
 
@@ -195,6 +195,68 @@ async function fetchBcbPair(base, quote) {
     attempts++
   }
   throw new Error('No PTAX data within 7 days')
+}
+
+async function fetchBcbMonthlySeries(base, quote, monthEnds) {
+  const other = base === 'BRL' ? quote : base
+  const firstTarget = monthEnds[0]
+  const lastTarget = monthEnds[monthEnds.length - 1]
+  const bufferStart = new Date(firstTarget)
+  bufferStart.setUTCDate(1)
+  bufferStart.setUTCDate(bufferStart.getUTCDate() - 7)
+  const bufferEnd = new Date(lastTarget)
+  bufferEnd.setUTCDate(bufferEnd.getUTCDate() + 2)
+
+  const startStr = mmddyyyy(bufferStart)
+  const endStr = mmddyyyy(bufferEnd)
+
+  const url =
+    `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
+    `CotacaoMoedaPeriodo(moeda='${other}',dataInicial='${startStr}',dataFinalCotacao='${endStr}')` +
+    `?$top=1000&$orderby=dataHoraCotacao asc&$format=json`
+
+  const { data } = await httpFast.get(url)
+  const entries = (data?.value ?? [])
+    .map((item) => ({
+      when: normalizeUTC(item.dataHoraCotacao),
+      sell: Number(item.cotacaoVenda),
+    }))
+    .filter((item) => item.when && Number.isFinite(item.sell))
+    .sort((a, b) => a.when - b.when)
+
+  if (!entries.length) {
+    throw new Error('No PTAX period data')
+  }
+
+  const series = []
+  let cursor = 0
+
+  for (const target of monthEnds) {
+    const cutoff = new Date(target)
+    cutoff.setUTCHours(23, 59, 59, 999)
+
+    while (cursor < entries.length && entries[cursor].when <= cutoff) {
+      cursor++
+    }
+
+    const picked = cursor > 0 ? entries[cursor - 1] : null
+    if (!picked) {
+      series.push(0)
+      continue
+    }
+
+    const rate = base === 'BRL' ? 1 / picked.sell : picked.sell
+    series.push(rate)
+  }
+
+  const cleaned = series.map((v) => (Number.isFinite(v) ? v : 0))
+  const allZero = cleaned.every((v) => !v)
+
+  return {
+    labels: monthEnds.map((d) => formatMonthLabel(d)),
+    series: cleaned,
+    allZero,
+  }
 }
 
 /*
@@ -410,6 +472,14 @@ async function fetchMonthlySeries(base, quote) {
   const monthEnds = lastTwelveMonthEnds()
   const labels = monthEnds.map((d) => formatMonthLabel(d))
   const series = []
+
+  if (base === 'BRL' || quote === 'BRL') {
+    try {
+      return await fetchBcbMonthlySeries(base, quote, monthEnds)
+    } catch (err) {
+      console.log('[BCB monthly failed]', err?.message || err)
+    }
+  }
 
   for (const d of monthEnds) {
     const dayStr = yyyymmdd(d)

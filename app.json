@@ -3,7 +3,7 @@
     "name": "dotExchange",
     "slug": "dotcoin",
     "version": "2.0.1",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -17,10 +17,9 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-     "androidStatusBar": {
-      "barStyle": "dark-content",
-      "backgroundColor": "#ffffff",
-      "translucent": false
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#00ADA200"
     },
     "ios": {
       "supportsTablet": true,
