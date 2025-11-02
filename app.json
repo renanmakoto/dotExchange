@@ -31,7 +31,7 @@
     },
     "android": {
       "package": "com.renanmakoto.dotexchange",
-      "versionCode": 22,
+      "versionCode": 14,
       "jsEngine": "hermes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
