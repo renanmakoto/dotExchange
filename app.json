@@ -2,7 +2,7 @@
   "expo": {
     "name": "dotExchange",
     "slug": "dotcoin",
-    "version": "v2.0.1",
+    "version": "2.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,7 +32,7 @@
     },
     "android": {
       "package": "com.renanmakoto.dotexchange",
-      "versionCode": 21,
+      "versionCode": 22,
       "jsEngine": "hermes",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
