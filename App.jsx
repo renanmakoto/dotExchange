@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 6,
     alignItems: 'center',
