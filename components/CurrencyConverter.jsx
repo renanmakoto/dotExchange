@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   Modal, FlatList, Pressable, Vibration, ScrollView,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, useWindowDimensions,
 } from 'react-native'
 import axios from 'axios'
 import HistoryGraphic from './HistoryGraphic'
@@ -24,6 +24,11 @@ const primaryAlpha = (opacity) => `rgba(0,173,162,${opacity})`
 const neutralAlpha = (opacity) => `rgba(133,133,133,${opacity})`
 
 const SHOW_AD_PLACEHOLDER = false
+
+const CARD_BASE_WIDTH = 370
+const CARD_HORIZONTAL_PADDING = 20
+const FORM_CONTENT_MAX_WIDTH = 320
+const STACKED_SELECTOR_BREAKPOINT = 230
 
 function formatMonthLabel(dateObj) {
   if (HAS_INTL) {
@@ -502,6 +507,46 @@ export default function CurrencyConverter() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
+  const isLandscape = windowWidth > windowHeight
+  const isTabletBreakpoint = Math.max(windowWidth, windowHeight) >= 768
+
+  const cardLayoutStyle = useMemo(() => {
+    if (!windowWidth || !windowHeight) {
+      return { alignSelf: 'center', width: CARD_BASE_WIDTH }
+    }
+
+    if (!isTabletBreakpoint) {
+      const maxPhoneWidth = CARD_BASE_WIDTH
+      const phoneWidth = Math.min(
+        Math.max(windowWidth - 24, 320),
+        maxPhoneWidth
+      )
+      return {
+        alignSelf: 'center',
+        width: phoneWidth,
+      }
+    }
+
+    const tabletMargin = isLandscape ? 320 : 260
+    const minTabletWidth = 380
+    const maxTabletWidth = 520
+    const availableWidth = Math.max(windowWidth - tabletMargin, minTabletWidth)
+    const tabletWidth = Math.min(Math.max(availableWidth, minTabletWidth), maxTabletWidth)
+
+    return {
+      alignSelf: 'center',
+      width: tabletWidth,
+    }
+  }, [windowWidth, windowHeight, isLandscape, isTabletBreakpoint])
+
+  const cardWidthValue = cardLayoutStyle.width ?? CARD_BASE_WIDTH
+  const formInnerWidth = Math.min(
+    Math.max(cardWidthValue - 2 * CARD_HORIZONTAL_PADDING, 0),
+    FORM_CONTENT_MAX_WIDTH,
+  )
+  const shouldStackSelectors = formInnerWidth < STACKED_SELECTOR_BREAKPOINT
+
   const [pickerVisible, setPickerVisible] = useState({ which: null, open: false })
 
   const [convertedText, setConvertedText] = useState('')
@@ -631,7 +676,7 @@ export default function CurrencyConverter() {
       <Header />
       <AdPlaceholder visible={SHOW_AD_PLACEHOLDER} />
 
-      <View style={styles.card}>
+      <View style={[styles.card, cardLayoutStyle]}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardHeading}>Currency converter</Text>
         </View>
@@ -652,19 +697,39 @@ export default function CurrencyConverter() {
             />
           </KeyboardAvoidingView>
 
-          <View style={styles.selectionRow}>
-            <TouchableOpacity style={[styles.selector, styles.selectorLeft]} onPress={() => openPicker('from')}>
+          <View
+            style={[
+              styles.selectionRow,
+              shouldStackSelectors && styles.selectionRowStacked,
+            ]}
+          >
+            <TouchableOpacity
+              style={[
+                styles.selector,
+                shouldStackSelectors ? styles.selectorStacked : styles.selectorLeft,
+              ]}
+              onPress={() => openPicker('from')}
+            >
               <Text style={styles.selectorLabel}>From</Text>
               <Text style={[styles.selectorValue, !from && styles.selectorPlaceholder]}>
                 {from || 'Select'}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.swapButton} onPress={switchCurrencies}>
+            <TouchableOpacity
+              style={[styles.swapButton, shouldStackSelectors && styles.swapButtonStacked]}
+              onPress={switchCurrencies}
+            >
               <Text style={styles.swapButtonText}>⇆</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.selector, styles.selectorRight]} onPress={() => openPicker('to')}>
+            <TouchableOpacity
+              style={[
+                styles.selector,
+                shouldStackSelectors ? styles.selectorStacked : styles.selectorRight,
+              ]}
+              onPress={() => openPicker('to')}
+            >
               <Text style={styles.selectorLabel}>To</Text>
               <Text style={[styles.selectorValue, !to && styles.selectorPlaceholder]}>
                 {to || 'Select'}
@@ -763,14 +828,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   card: {
-    width: 370,
+    width: CARD_BASE_WIDTH,
     maxWidth: 820,
-    alignSelf: 'stretch',
+    alignSelf: 'center',
     marginHorizontal: 8,
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 24,
     paddingVertical: 22,
-    paddingHorizontal: 20,
+    paddingHorizontal: CARD_HORIZONTAL_PADDING,
     marginBottom: 24,
     borderWidth: 0,
     borderColor: 'transparent',
@@ -795,7 +860,7 @@ const styles = StyleSheet.create({
   },
   formContent: {
     width: '100%',
-    maxWidth: 320,
+    maxWidth: FORM_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
     alignItems: 'center',
   },
@@ -841,6 +906,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
+  selectionRowStacked: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+  },
   selector: {
     flex: 1,
     backgroundColor: primaryAlpha(0.06),
@@ -851,10 +921,17 @@ const styles = StyleSheet.create({
     borderColor: primaryAlpha(0.22),
   },
   selectorLeft: {
-    marginRight: 20,
+    marginRight: 12,
   },
   selectorRight: {
-    marginLeft: 20,
+    marginLeft: 12,
+  },
+  selectorStacked: {
+    flex: 0,
+    width: '100%',
+    marginHorizontal: 0,
+    marginVertical: 6,
+    alignSelf: 'stretch',
   },
   selectorLabel: {
     color: neutralAlpha(0.65),
@@ -890,6 +967,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
+  },
+  swapButtonStacked: {
+    marginVertical: 10,
+    alignSelf: 'center',
   },
   swapButtonText: {
     color: BRAND_PRIMARY,
