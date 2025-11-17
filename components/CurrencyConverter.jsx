@@ -185,7 +185,7 @@ async function fetchBcbPair(base, quote) {
         throw new Error('Unsupported PTAX pair')
       }
     } catch {
-      //IGNORE AND ROLL BACK DATE
+      
     }
 
     day.setDate(day.getDate() - 1)
