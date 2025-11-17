@@ -185,7 +185,7 @@ async function fetchBcbPair(base, quote) {
         throw new Error('Unsupported PTAX pair')
       }
     } catch {
-      
+
     }
 
     day.setDate(day.getDate() - 1)
@@ -322,7 +322,6 @@ async function fetchFiatRate(base, quote, dateStr) {
   }
 }
 
-/* BTC: COINGECKO -> COINBASE -> COINDESK (last) */
 async function fetchBtcUsd() {
   //COINGECKO
   try {
