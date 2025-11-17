@@ -323,7 +323,6 @@ async function fetchFiatRate(base, quote, dateStr) {
 }
 
 async function fetchBtcUsd() {
-  //COINGECKO
   try {
     const { data } = await httpFast.get(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
