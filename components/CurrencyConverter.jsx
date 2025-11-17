@@ -133,7 +133,6 @@ function parseTimestampParts(utcString) {
   }
 }
 
-//DATE HELPERS FOR BCB AND HISTORICAL QUERIES
 function mmddyyyy(d) {
   const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
   const dd = String(d.getUTCDate()).padStart(2, '0')
