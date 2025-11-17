@@ -109,7 +109,6 @@ function getLocationForCurrency(toCode) {
 const http = axios.create({ timeout: 12000 })
 const httpFast = axios.create({ timeout: 8000 })
 
-//NUMBER FORMATTING THAT USES SAFE WRAPPER
 function formatAmount(value, currency) {
   try {
     const isBTC = currency === 'BTC'
