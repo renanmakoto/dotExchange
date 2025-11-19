@@ -256,9 +256,6 @@ async function fetchBcbMonthlySeries(base, quote, monthEnds) {
   }
 }
 
-/*
-ECB DAILY REFERENCE IN XML FOR SPOT (USD/CAD/EUR/BRL CROSSES) 
-*/
 async function fetchEcbDailyCross(base, quote) {
   const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
   const { data: xml } = await httpFast.get(url, { responseType: 'text' })
