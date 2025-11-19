@@ -346,7 +346,6 @@ async function fetchBtcUsd() {
     console.log('[Coinbase failed]', e?.message || e)
   }
 
-  //COINDESK
   try {
     const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json')
     const usdPerBtc = data?.bpi?.USD?.rate_float
