@@ -280,7 +280,6 @@ async function fetchEcbDailyCross(base, quote) {
   return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' }
 }
 
-//FRANKFURTER EXCHANGE.HOST FOR HISTORICAL & FALLBACK
 async function fetchFiatRate(base, quote, dateStr) {
   try {
     if (dateStr) {
