@@ -376,7 +376,6 @@ async function fetchBtcCross(base, quote) {
   throw new Error('Unsupported BTC pair')
 }
 
-//UNIFIED ACCESS FOR ANY PAIR (BRL, CAD, USD, EUR, BTC)
 async function fetchAnyRate(base, quote) {
   if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' }
   const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c)
