@@ -13,9 +13,10 @@ const THEME = {
 
 const GRAPH_PADDING_LEFT = 8
 const GRAPH_PADDING_RIGHT = 8
-const CHART_RIGHT_EXTENSION = 6
+const CHART_RIGHT_EXTENSION = 0
 const CARD_RIGHT_EXTENSION = 0
 const OUTER_GUTTER = 24
+const SIDE_GUTTER = OUTER_GUTTER / 2
 
 export default function HistoryGraphic({
   data,
@@ -142,7 +143,7 @@ export default function HistoryGraphic({
     >
       <LineChart
         data={chartData}
-        width={chartWidth + CHART_RIGHT_EXTENSION + GRAPH_PADDING_RIGHT}
+        width={chartWidth}
         height={height}
         withInnerLines={false}
         withVerticalLines={false}
@@ -152,7 +153,7 @@ export default function HistoryGraphic({
         yAxisSuffix={yAxisSuffix}
         chartConfig={chartConfig}
         bezier
-        style={[styles.chart, { marginRight: -(CHART_RIGHT_EXTENSION + GRAPH_PADDING_RIGHT) }]}
+        style={[styles.chart, { marginRight: 0 }]}
      />
 
     </View>
@@ -161,16 +162,14 @@ export default function HistoryGraphic({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "100%",
     maxWidth: 920,
     alignSelf: "stretch",
     marginTop: 20,
-    marginHorizontal: 0,
+    marginHorizontal: SIDE_GUTTER,
     paddingTop: 12,
     paddingBottom: 12,
     paddingLeft: GRAPH_PADDING_LEFT,
     paddingRight: GRAPH_PADDING_RIGHT,
-    marginRight: -CARD_RIGHT_EXTENSION,
     borderRadius: 18,
     backgroundColor: "#EFF9F8",
     borderWidth: 1,
