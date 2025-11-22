@@ -30,8 +30,7 @@ TECHNOLOGIES USED:
 
 <br>
 
-<img src="./assets/sample.gif" style="width: 300px; height: 600px;"/>
-
+<img src="./assets/dotExchange_sample.gif" style="width: 300px; height: 600px;"/>
 
 </div>
 
