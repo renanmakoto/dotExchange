@@ -1,5 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native'
 
+const BRAND_PRIMARY = '#00ADA2'
+const BRAND_NEUTRAL = '#858585'
+
 export default function AdPlaceholder({ visible = false }) {
   if (!visible) return null
 
@@ -29,7 +32,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   heading: {
-    color: '#00ADA2',
+    color: BRAND_PRIMARY,
     fontWeight: '700',
     fontSize: 18,
     letterSpacing: 0.6,
@@ -37,7 +40,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   caption: {
-    color: '#858585',
+    color: BRAND_NEUTRAL,
     fontSize: 13,
     marginTop: 6,
     lineHeight: 18,
