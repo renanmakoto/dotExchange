@@ -1,6 +1,8 @@
 import React from 'react'
 import { View, StyleSheet, Text } from 'react-native'
 
+const BRAND_LIGHT = '#FFFFFF'
+
 export default function Footer() {
   return (
     <View style={styles.container}>
@@ -27,7 +29,7 @@ const styles = StyleSheet.create({
   },
   mainText: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: BRAND_LIGHT,
     fontWeight: '600',
     lineHeight: 22,
   },
