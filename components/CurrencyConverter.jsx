@@ -1,20 +1,22 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   Modal, FlatList, Pressable, Vibration, ScrollView,
   KeyboardAvoidingView, Platform, useWindowDimensions,
 } from 'react-native'
-import axios from 'axios'
 import HistoryGraphic from './HistoryGraphic'
 import AdPlaceholder from './AdPlaceholder'
 import Header from './Header'
 import Footer from './Footer'
-
-
-const HAS_INTL =
-  typeof Intl !== 'undefined' &&
-  typeof Intl.NumberFormat === 'function' &&
-  typeof Intl.DateTimeFormat === 'function'
+import {
+  CURRENCIES,
+  fetchAnyRate,
+  fetchMonthlySeries,
+  formatAmount,
+  getLocationForCurrency,
+  parseTimestampParts,
+  sanitizeSeries,
+} from '../services/rates'
 
 const BRAND_PRIMARY = '#00ADA2'
 const BRAND_NEUTRAL = '#858585'
@@ -29,466 +31,16 @@ const CARD_BASE_WIDTH = 370
 const CARD_HORIZONTAL_PADDING = 20
 const FORM_CONTENT_MAX_WIDTH = 320
 const STACKED_SELECTOR_BREAKPOINT = 230
-
-function formatMonthLabel(dateObj) {
-  if (HAS_INTL) {
-    return new Intl.DateTimeFormat('en-US', { month: 'short' }).format(dateObj)
-  }
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  return months[dateObj.getUTCMonth()]
-}
-
-function normalizeUTC(str) {
-  if (!str) return null
-  if (str.includes(' ') && !str.endsWith('Z')) {
-    return new Date(str.replace(' ', 'T') + 'Z')
-  }
-  const d = new Date(str)
-  return isNaN(d.getTime()) ? null : d
-}
-
-function safeFormatNumber(value, locale, opts) {
-  if (HAS_INTL) return new Intl.NumberFormat(locale, opts).format(value)
-
-  const digits =
-    (opts && (opts.minimumFractionDigits ?? opts.maximumFractionDigits)) ?? 2
-  const n = Number(value)
-  if (!isFinite(n)) return String(value)
-  const s = n.toFixed(digits)
-  if (locale === 'pt-BR') {
-    const [int, dec] = s.split('.')
-    return int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (dec ? ',' + dec : '')
-  }
-  return s
-}
-
-function safeFormatTimeISO(isoOrUtcStr) {
-  const d = normalizeUTC(isoOrUtcStr)
-  if (!d) return '-'
-  if (HAS_INTL) {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC',
-    }).format(d)
-  }
-  const hh = String(d.getUTCHours()).padStart(2, '0')
-  const mm = String(d.getUTCMinutes()).padStart(2, '0')
-  return `${hh}:${mm}`
-}
-
-function safeFormatDateISO(isoOrUtcStr) {
-  const d = normalizeUTC(isoOrUtcStr)
-  if (!d) return '-'
-  if (HAS_INTL) {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-    }).format(d)
-  }
-  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()]
-  return `${m} ${d.getUTCDate()}, ${d.getUTCFullYear()}`
-}
-
-const CURRENCIES = [
-  { code: 'BRL', name: 'Brazilian Real' },
-  { code: 'CAD', name: 'Canadian Dollar' },
-  { code: 'USD', name: 'US Dollar' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'BTC', name: 'Bitcoin' },
-]
-
-function getLocationForCurrency(toCode) {
-  switch (toCode) {
-    case 'BRL': return 'Brasília'
-    case 'CAD': return 'Toronto'
-    case 'USD': return 'New York'
-    case 'EUR': return 'Frankfurt'
-    case 'BTC':
-    default:    return ''
-  }
-}
-
-const http = axios.create({ timeout: 12000 })
-const httpFast = axios.create({ timeout: 8000 })
-
-function formatAmount(value, currency) {
-  try {
-    const isBTC = currency === 'BTC'
-    const locale =
-      currency === 'BRL' ? 'pt-BR' :
-      currency === 'EUR' ? 'en-IE' :
-      'en-CA'
-    const opts = isBTC
-      ? { minimumFractionDigits: 8, maximumFractionDigits: 8 }
-      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-    return safeFormatNumber(value, locale, opts)
-  } catch {
-    return String(value)
-  }
-}
-
-function parseTimestampParts(utcString) {
-  if (!utcString) return { timeStr: '-', dateStr: '-' }
-  return {
-    timeStr: safeFormatTimeISO(utcString),
-    dateStr: safeFormatDateISO(utcString),
-  }
-}
-
-function mmddyyyy(d) {
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(d.getUTCDate()).padStart(2, '0')
-  const yyyy = d.getUTCFullYear()
-  return `${mm}-${dd}-${yyyy}`
-}
-
-function yyyymmdd(d) {
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(d.getUTCDate()).padStart(2, '0')
-  const yyyy = d.getUTCFullYear()
-  return `${yyyy}-${mm}-${dd}`
-}
-
-function lastTwelveMonthEnds() {
-  const out = []
-  const now = new Date()
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i + 1, 0))
-    out.push(d)
-  }
-  return out
-}
-
-async function fetchBcbPair(base, quote) {
-  const foreign = base === 'BRL' ? quote : base
-  let attempts = 0
-  let day = new Date()
-
-  while (attempts < 7) {
-    const bcbDate = mmddyyyy(day)
-    const url =
-      `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
-      `CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)` +
-      `?@moeda='${foreign}'&@dataCotacao='${bcbDate}'&$top=100&$orderby=dataHoraCotacao desc&$format=json`
-
-    try {
-      const { data } = await http.get(url)
-      const arr = data?.value ?? []
-      if (arr.length) {
-        const latest = arr[0]
-        const brlPerForeign = latest.cotacaoVenda
-        const ts = latest.dataHoraCotacao
-        if (base === 'BRL' && quote !== 'BRL') {
-          return { rate: 1 / brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' }
-        }
-        if (quote === 'BRL' && base !== 'BRL') {
-          return { rate: brlPerForeign, timestampUTC: ts, hasTime: true, source: 'BCB/PTAX' }
-        }
-        throw new Error('Unsupported PTAX pair')
-      }
-    } catch {
-
-    }
-
-    day.setDate(day.getDate() - 1)
-    attempts++
-  }
-  throw new Error('No PTAX data within 7 days')
-}
-
-async function fetchBcbMonthlySeries(base, quote, monthEnds) {
-  const other = base === 'BRL' ? quote : base
-  const firstTarget = monthEnds[0]
-  const lastTarget = monthEnds[monthEnds.length - 1]
-  const bufferStart = new Date(firstTarget)
-  bufferStart.setUTCDate(1)
-  bufferStart.setUTCDate(bufferStart.getUTCDate() - 7)
-  const bufferEnd = new Date(lastTarget)
-  bufferEnd.setUTCDate(bufferEnd.getUTCDate() + 2)
-
-  const startStr = mmddyyyy(bufferStart)
-  const endStr = mmddyyyy(bufferEnd)
-
-  const url =
-    `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
-    `CotacaoMoedaPeriodo(moeda='${other}',dataInicial='${startStr}',dataFinalCotacao='${endStr}')` +
-    `?$top=1000&$orderby=dataHoraCotacao asc&$format=json`
-
-  const { data } = await httpFast.get(url)
-  const entries = (data?.value ?? [])
-    .map((item) => ({
-      when: normalizeUTC(item.dataHoraCotacao),
-      sell: Number(item.cotacaoVenda),
-    }))
-    .filter((item) => item.when && Number.isFinite(item.sell))
-    .sort((a, b) => a.when - b.when)
-
-  if (!entries.length) {
-    throw new Error('No PTAX period data')
-  }
-
-  const series = []
-  let cursor = 0
-
-  for (const target of monthEnds) {
-    const cutoff = new Date(target)
-    cutoff.setUTCHours(23, 59, 59, 999)
-
-    while (cursor < entries.length && entries[cursor].when <= cutoff) {
-      cursor++
-    }
-
-    const picked = cursor > 0 ? entries[cursor - 1] : null
-    if (!picked) {
-      series.push(0)
-      continue
-    }
-
-    const rate = base === 'BRL' ? 1 / picked.sell : picked.sell
-    series.push(rate)
-  }
-
-  const cleaned = series.map((v) => (Number.isFinite(v) ? v : 0))
-  const allZero = cleaned.every((v) => !v)
-
-  return {
-    labels: monthEnds.map((d) => formatMonthLabel(d)),
-    series: cleaned,
-    allZero,
-  }
-}
-
-async function fetchEcbDailyCross(base, quote) {
-  const url = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
-  const { data: xml } = await httpFast.get(url, { responseType: 'text' })
-
-  const timeMatch = xml.match(/time=['"](\d{4}-\d{2}-\d{2})['"]/)
-  const date = timeMatch ? timeMatch[1] : null
-
-  const rates = { EUR: 1.0 }
-  const rx = /currency=['"]([A-Z]{3})['"]\s+rate=['"]([\d.]+)['"]/g
-  let m
-  while ((m = rx.exec(xml)) !== null) {
-    rates[m[1]] = parseFloat(m[2])
-  }
-
-  if (!rates[base] && base !== 'EUR') throw new Error(`ECB has no ${base} quote`)
-  if (!rates[quote] && quote !== 'EUR') throw new Error(`ECB has no ${quote} quote`)
-
-  const eurToBase = base === 'EUR' ? 1 : rates[base]
-  const eurToQuote = quote === 'EUR' ? 1 : rates[quote]
-  const rate = eurToQuote / eurToBase
-
-  return { rate, timestampUTC: `${date} 00:00:00`, hasTime: false, source: 'ECB eurofxref' }
-}
-
-async function fetchFiatRate(base, quote, dateStr) {
-  try {
-    if (dateStr) {
-      const url = `https://api.frankfurter.app/${dateStr}?from=${base}&to=${quote}`
-      const { data } = await httpFast.get(url)
-      const rate = data?.rates?.[quote]
-      if (!rate) throw new Error('No frankfurter historical rate')
-      return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'ECB/Frankfurter' }
-    } else {
-      const url = `https://api.frankfurter.app/latest?from=${base}&to=${quote}`
-      const { data } = await httpFast.get(url)
-      const rate = data?.rates?.[quote]
-      if (!rate) throw new Error('No frankfurter latest rate')
-      return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'ECB/Frankfurter' }
-    }
-  } catch (e) {
-    console.log('[Frankfurter failed]', e?.message || e)
-  }
-
-  try {
-    if (dateStr) {
-      const url = `https://api.exchangerate.host/convert?from=${base}&to=${quote}&date=${dateStr}`
-      const { data } = await http.get(url)
-      if (!data?.result) throw new Error('No result from exchangerate.host')
-      return { rate: data.result, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' }
-    } else {
-      const url = `https://api.exchangerate.host/latest?base=${base}&symbols=${quote}`
-      const { data } = await http.get(url)
-      const rate = data?.rates?.[quote]
-      if (!rate) throw new Error('No latest result from exchangerate.host')
-      return { rate, timestampUTC: `${data.date} 00:00:00`, hasTime: false, source: 'exchangerate.host' }
-    }
-  } catch (e) {
-    console.log('[FX fallback failed]', e?.message || e)
-    throw new Error('No fiat rate available')
-  }
-}
-
-async function fetchBtcUsd() {
-  try {
-    const { data } = await httpFast.get(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_last_updated_at=true'
-    )
-    const usd = data?.bitcoin?.usd
-    const tsSec = data?.bitcoin?.last_updated_at
-    if (usd) {
-      const tsISO = tsSec ? new Date(tsSec * 1000).toISOString() : new Date().toISOString()
-      return { usdPerBtc: usd, timestampUTC: tsISO, hasTime: true, source: 'CoinGecko' }
-    }
-    throw new Error('No CoinGecko BTC/USD')
-  } catch (e) {
-    console.log('[CoinGecko failed]', e?.message || e)
-  }
-
-  try {
-    const { data } = await httpFast.get('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
-    const usdPerBtc = data?.data?.rates?.USD ? parseFloat(data.data.rates.USD) : null
-    if (usdPerBtc) {
-      const tsISO = new Date().toISOString()
-      return { usdPerBtc, timestampUTC: tsISO, hasTime: true, source: 'Coinbase' }
-    }
-    throw new Error('No Coinbase BTC/USD')
-  } catch (e) {
-    console.log('[Coinbase failed]', e?.message || e)
-  }
-
-  try {
-    const { data } = await http.get('https://api.coindesk.com/v1/bpi/currentprice/USD.json')
-    const usdPerBtc = data?.bpi?.USD?.rate_float
-    const tsISO = data?.time?.updatedISO
-    if (!usdPerBtc) throw new Error('No CoinDesk BTC/USD')
-    return { usdPerBtc, timestampUTC: tsISO || new Date().toISOString(), hasTime: true, source: 'CoinDesk' }
-  } catch (e) {
-    console.log('[CoinDesk failed]', e?.message || e)
-    throw new Error('No BTC/USD available from any source')
-  }
-}
-
-async function fetchBtcCross(base, quote) {
-  const core = await fetchBtcUsd()
-  const { usdPerBtc, timestampUTC, hasTime, source } = core
-
-  if (base === 'BTC' && quote === 'USD') return { rate: usdPerBtc, timestampUTC, hasTime, source }
-  if (base === 'USD' && quote === 'BTC') return { rate: 1 / usdPerBtc, timestampUTC, hasTime, source }
-
-  if (base === 'BTC') {
-    const { rate: usdToQuote } = await fetchEcbDailyCross('USD', quote)
-    return { rate: usdPerBtc * usdToQuote, timestampUTC, hasTime, source }
-  }
-  if (quote === 'BTC') {
-    const { rate: baseToUsd } = await fetchEcbDailyCross(base, 'USD')
-    return { rate: baseToUsd / usdPerBtc, timestampUTC, hasTime, source }
-  }
-  throw new Error('Unsupported BTC pair')
-}
-
-async function fetchAnyRate(base, quote) {
-  if (base === quote) return { rate: 1, timestampUTC: new Date().toISOString(), hasTime: true, source: 'local' }
-  const isFiat = (c) => ['BRL', 'USD', 'CAD', 'EUR'].includes(c)
-
-  if (base === 'BTC' || quote === 'BTC') {
-    return fetchBtcCross(base, quote)
-  }
-
-  if ((base === 'BRL' || quote === 'BRL') && isFiat(base) && isFiat(quote)) {
-    try {
-      return await fetchBcbPair(base, quote)
-    } catch (e) {
-      console.log('[PTAX failed, will fallback to ECB]', e?.message || e)
-      return fetchEcbDailyCross(base, quote)
-    }
-  }
-
-  return fetchEcbDailyCross(base, quote)
-}
-
-async function fetchBtcMonthlySeries(base, quote) {
-  const monthEnds = lastTwelveMonthEnds()
-  const labels = monthEnds.map((d) => formatMonthLabel(d))
-  const otherCurrency = base === 'BTC' ? quote : base
-
-  const supported = ['USD', 'CAD', 'EUR', 'BRL']
-  if (!supported.includes(otherCurrency)) {
-    throw new Error(`BTC historical series not available for ${otherCurrency}`)
-  }
-
-  try {
-    const { data } = await httpFast.get(
-      'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart',
-      {
-        params: {
-          vs_currency: otherCurrency.toLowerCase(),
-          days: 370,
-          interval: 'daily',
-        },
-      }
-    )
-
-    const prices = Array.isArray(data?.prices) ? data.prices : []
-    if (!prices.length) throw new Error('Empty BTC series')
-
-    const series = monthEnds.map((d) => {
-      const target = d.getTime()
-      let closestDiff = Infinity
-      let closestPrice = null
-
-      for (const [timestamp, price] of prices) {
-        if (!Number.isFinite(price)) continue
-        const diff = Math.abs(Number(timestamp) - target)
-        if (diff < closestDiff) {
-          closestDiff = diff
-          closestPrice = price
-        }
-      }
-
-      if (!Number.isFinite(closestPrice) || closestPrice <= 0) return 0
-      if (quote === 'BTC') {
-        return closestPrice > 0 ? 1 / closestPrice : 0
-      }
-      return closestPrice
-    })
-
-    const cleaned = series.map((v) => (Number.isFinite(v) && v > 0 ? v : 0))
-    const allZero = cleaned.every((v) => !v)
-    return { labels, series: cleaned, allZero }
-  } catch (e) {
-    console.log('[BTC monthly series failed]', base, quote, e?.message || e)
-    return { labels, series: [], allZero: true }
-  }
-}
-
-async function fetchMonthlySeries(base, quote) {
-  if (base === 'BTC' || quote === 'BTC') {
-    const btcSeries = await fetchBtcMonthlySeries(base, quote)
-    return btcSeries
-  }
-
-  const monthEnds = lastTwelveMonthEnds()
-  const labels = monthEnds.map((d) => formatMonthLabel(d))
-  const series = []
-
-  if (base === 'BRL' || quote === 'BRL') {
-    try {
-      return await fetchBcbMonthlySeries(base, quote, monthEnds)
-    } catch (err) {
-      console.log('[BCB monthly failed]', err?.message || err)
-    }
-  }
-
-  for (const d of monthEnds) {
-    const dayStr = yyyymmdd(d)
-    try {
-      const { rate } = await fetchFiatRate(base, quote, dayStr)
-      series.push(rate)
-    } catch (e) {
-      console.log('[Monthly point failed]', base, quote, dayStr, e?.message || e)
-      series.push(0)
-    }
-  }
-
-  const cleaned = series.map((v) => (Number.isFinite(v) ? v : 0))
-  const allZero = cleaned.every((v) => !v)
-  return { labels, series: cleaned, allZero }
-}
+const INITIAL_PICKER_STATE = { which: null, open: false }
 
 export default function CurrencyConverter() {
   const [amount, setAmount] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const requestTokenRef = useRef(0)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => () => { isMountedRef.current = false }, [])
 
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const isLandscape = windowWidth > windowHeight
@@ -530,7 +82,7 @@ export default function CurrencyConverter() {
   )
   const shouldStackSelectors = formInnerWidth < STACKED_SELECTOR_BREAKPOINT
 
-  const [pickerVisible, setPickerVisible] = useState({ which: null, open: false })
+  const [pickerVisible, setPickerVisible] = useState(INITIAL_PICKER_STATE)
 
   const [convertedText, setConvertedText] = useState('')
   const [rateTimestampUTC, setRateTimestampUTC] = useState('')
@@ -546,44 +98,46 @@ export default function CurrencyConverter() {
     return loc ? `, ${loc}` : ''
   }, [to])
 
+  const resetUiState = () => {
+    setConvertedText('')
+    setRateTimestampUTC('')
+    setRateHasTime(false)
+    setGraphData([])
+    setGraphLabels([])
+    setErrorMsg('')
+  }
+
   const openPicker = (which) => setPickerVisible({ which, open: true })
   const pickCurrency = (code) => {
     if (pickerVisible.which === 'from') setFrom(code)
     if (pickerVisible.which === 'to') setTo(code)
-    setPickerVisible({ which: null, open: false })
+    setPickerVisible(INITIAL_PICKER_STATE)
     setErrorMsg('')
   }
 
   const switchCurrencies = () => {
     setFrom(to)
     setTo(from)
-    setConvertedText('')
-    setRateTimestampUTC('')
-    setRateHasTime(false)
-    setGraphData([])
-    setGraphLabels([])
-    setErrorMsg('')
+    resetUiState()
   }
 
   const handleConvert = async () => {
+    const requestId = ++requestTokenRef.current
+    const isActiveRequest = () => isMountedRef.current && requestTokenRef.current === requestId
+
+    resetUiState()
     setLoading(true)
     setLoadingGraph(false)
-    setErrorMsg('')
-    setConvertedText('')
-    setRateTimestampUTC('')
-    setRateHasTime(false)
-    setGraphData([])
-    setGraphLabels([])
 
     if (!from || !to) {
-      setLoading(false)
+      if (isActiveRequest()) setLoading(false)
       setErrorMsg('Select both currencies to convert.')
       Vibration.vibrate(180)
       return
     }
 
     if (from === to) {
-      setLoading(false)
+      if (isActiveRequest()) setLoading(false)
       setErrorMsg('Please pick two different currencies for conversion.')
       Vibration.vibrate(180)
       return
@@ -593,11 +147,12 @@ export default function CurrencyConverter() {
       const amt = parseFloat((amount || '').replace(',', '.'))
       if (isNaN(amt)) {
         setErrorMsg('Enter a valid amount')
-        setLoading(false)
+        if (isActiveRequest()) setLoading(false)
         return
       }
 
-      const { rate, timestampUTC, hasTime, source } = await fetchAnyRate(from, to)
+      const { rate, timestampUTC, hasTime } = await fetchAnyRate(from, to)
+      if (!isActiveRequest()) return
       const converted = amt * rate
 
       const left = `${formatAmount(amt, from)} ${from}`
@@ -605,41 +160,45 @@ export default function CurrencyConverter() {
       setConvertedText(`${left} = ${right}`)
       setRateTimestampUTC(timestampUTC)
       setRateHasTime(hasTime)
-      console.log('[Spot source]', source, 'timestamp:', timestampUTC)
     } catch (e) {
-      console.log('[Spot conversion failed]', from, to, e?.message || e)
-      setErrorMsg('Failed to fetch exchange rate.')
-      setLoading(false)
-      setLoadingGraph(false)
+      if (isActiveRequest()) {
+        setErrorMsg('Failed to fetch exchange rate.')
+        setLoading(false)
+        setLoadingGraph(false)
+      }
       return
     }
 
     const isBitcoinPair = from === 'BTC' || to === 'BTC'
-    if (isBitcoinPair) {
+    if (isBitcoinPair && isActiveRequest()) {
       setLoading(false)
       setLoadingGraph(false)
       return
     }
 
     try {
-      setLoadingGraph(true)
+      if (isActiveRequest()) setLoadingGraph(true)
       const { labels, series, allZero } = await fetchMonthlySeries(from, to)
+      if (!isActiveRequest()) return
       if (allZero) {
+        // If historical data is unavailable, show a flat line at the current rate.
         const { rate } = await fetchAnyRate(from, to)
+        if (!isActiveRequest()) return
         const flat = Array(labels.length).fill(rate)
-        const cleaned = flat.map(v => (Number.isFinite(v) ? v : 0))
+        const cleaned = sanitizeSeries(flat)
         setGraphLabels(labels)
         setGraphData(cleaned)
       } else {
-        const cleaned = series.map(v => (Number.isFinite(v) ? v : 0))
+        const cleaned = sanitizeSeries(series)
         setGraphLabels(labels)
         setGraphData(cleaned)
       }
     } catch (e) {
-      console.log('[Graph series failed]', from, to, e?.message || e)
     } finally {
-      setLoading(false)
-      setLoadingGraph(false)
+      if (isActiveRequest()) {
+        setLoading(false)
+        setLoadingGraph(false)
+      }
     }
   }
 
@@ -749,21 +308,17 @@ export default function CurrencyConverter() {
       </View>
 
       {loadingGraph && (
-        <View style={[styles.graphSection, styles.graphSectionInner]}>
-          <View style={styles.graphSkeleton}>
-            <Text style={styles.graphSkeletonTitle}>Loading 12 month trend…</Text>
-          </View>
+        <View style={styles.graphSkeleton}>
+          <Text style={styles.graphSkeletonTitle}>Loading 12 month trend…</Text>
         </View>
       )}
 
       {!loadingGraph && graphData.length > 0 && (
-        <View style={[styles.graphSection, styles.graphSectionInner]}>
-          <HistoryGraphic
-            data={graphData}
-            labels={graphLabels}
-            decimalPlaces={from === 'BTC' || to === 'BTC' ? 6 : 4}
-          />
-        </View>
+        <HistoryGraphic
+          data={graphData}
+          labels={graphLabels}
+          decimalPlaces={from === 'BTC' || to === 'BTC' ? 6 : 4}
+        />
       )}
 
       <Footer />
@@ -772,9 +327,9 @@ export default function CurrencyConverter() {
         visible={pickerVisible.open}
         transparent
         animationType='fade'
-        onRequestClose={() => setPickerVisible({ which: null, open: false })}
+        onRequestClose={() => setPickerVisible(INITIAL_PICKER_STATE)}
       >
-        <Pressable style={styles.modalBackdrop} onPress={() => setPickerVisible({ which: null, open: false })}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setPickerVisible(INITIAL_PICKER_STATE)}>
           <Pressable style={styles.modalSheet} onPress={() => {}}>
             <Text style={styles.modalTitle}>
               {pickerVisible.which === 'from' ? 'Select source currency' : 'Select target currency'}
@@ -820,8 +375,6 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     paddingHorizontal: CARD_HORIZONTAL_PADDING,
     marginBottom: 24,
-    borderWidth: 0,
-    borderColor: 'transparent',
     shadowColor: 'rgba(0,173,162,0.35)',
     shadowOpacity: 0.32,
     shadowRadius: 26,
@@ -1033,35 +586,32 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     width: '100%',
   },
-  graphSection: {
-    width: '100%',
-    maxWidth: 880,
-    alignItems: 'center',
-    marginHorizontal: 0,
-    paddingHorizontal: 0,
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  graphSectionInner: {
-    paddingHorizontal: 0,
-  },
   graphSkeleton: {
-    width: '100%',
-    borderRadius: 20,
+    maxWidth: 920,
+    alignSelf: 'stretch',
+    marginTop: 20,
+    marginHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderRadius: 18,
+    backgroundColor: '#EFF9F8',
     borderWidth: 1,
-    borderColor: primaryAlpha(0.25),
+    borderColor: 'rgba(0,173,162,0.25)',
     borderStyle: 'dashed',
-    paddingVertical: 30,
-    paddingHorizontal: 18,
+    shadowColor: 'rgba(0,173,162,0.32)',
+    shadowOpacity: 0.32,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: "#FFFFFF"
   },
   graphSkeletonTitle: {
     color: neutralAlpha(0.8),
     fontSize: 15,
     lineHeight: 20,
-    backgroundColor: "#FFFFFF"
   },
   modalBackdrop: {
     flex: 1,
