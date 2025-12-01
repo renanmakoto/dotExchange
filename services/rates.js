@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Shared formatting helpers
 const HAS_INTL =
   typeof Intl !== 'undefined' &&
   typeof Intl.NumberFormat === 'function' &&
