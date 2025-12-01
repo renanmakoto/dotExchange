@@ -181,7 +181,6 @@ export default function CurrencyConverter() {
       const { labels, series, allZero } = await fetchMonthlySeries(from, to)
       if (!isActiveRequest()) return
       if (allZero) {
-        // If historical data is unavailable, show a flat line at the current rate.
         const { rate } = await fetchAnyRate(from, to)
         if (!isActiveRequest()) return
         const flat = Array(labels.length).fill(rate)
