@@ -1,46 +1,44 @@
-import React, { useState, useMemo } from "react"
-import { View, Dimensions, StyleSheet } from "react-native"
-import { LineChart } from "react-native-chart-kit"
+import React, { useState, useMemo } from 'react'
+import { View, Dimensions, StyleSheet } from 'react-native'
+import { LineChart } from 'react-native-chart-kit'
 
 const THEME = {
-  cardBgFrom: "#EFF9F8",
-  cardBgTo: "#EFF9F8",
-  accent: "#00ADA2",
-  textPrimary: "#00ADA2",
-  textMuted: "#858585",
-  grid: "rgba(133,133,133,0.25)",
+  cardBg: '#EFF9F8',
+  accent: '#00ADA2',
+  textMuted: '#858585',
+  grid: 'rgba(133,133,133,0.25)',
 }
 
 const GRAPH_PADDING_LEFT = 8
 const GRAPH_PADDING_RIGHT = 8
-const CHART_RIGHT_EXTENSION = 0
-const CARD_RIGHT_EXTENSION = 0
 const OUTER_GUTTER = 24
 const SIDE_GUTTER = OUTER_GUTTER / 2
+const MAX_CHART_WIDTH = 920
+const MIN_CHART_WIDTH = 260
+const MIN_FALLBACK_WIDTH = 280
 
 export default function HistoryGraphic({
   data,
   labels,
   height = 260,
   decimalPlaces = 4,
-  yAxisSuffix = "",
+  yAxisSuffix = '',
   yPaddingFactor = 0.12,
 }) {
   if (!data?.length) return null
 
-  const windowWidth = Dimensions.get("window").width
-  const maxChartWidth = 920
+  const windowWidth = Dimensions.get('window').width
   const [measuredWidth, setMeasuredWidth] = useState(null)
 
   const fallbackWidth = useMemo(() => {
-    const effectiveWidth = Math.min(windowWidth, maxChartWidth)
+    const effectiveWidth = Math.min(windowWidth, MAX_CHART_WIDTH)
     return Math.max(
       effectiveWidth - OUTER_GUTTER - (GRAPH_PADDING_LEFT + GRAPH_PADDING_RIGHT),
-      280
+      MIN_FALLBACK_WIDTH
     )
   }, [windowWidth])
 
-  const chartWidth = Math.max(measuredWidth ?? fallbackWidth, 260)
+  const chartWidth = Math.max(measuredWidth ?? fallbackWidth, MIN_CHART_WIDTH)
   const labelDecimals = useMemo(() => {
     if (!Number.isFinite(decimalPlaces)) return 0
     return Math.min(Math.max(Math.round(decimalPlaces), 0), 8)
@@ -68,7 +66,7 @@ export default function HistoryGraphic({
   }, [sanitizedData, yPaddingFactor])
 
   const sanitizedLabels = useMemo(
-    () => labels.map((label) => (label ?? "").toString()),
+    () => labels.map((label) => (label ?? '').toString()),
     [labels]
   )
 
@@ -103,9 +101,9 @@ export default function HistoryGraphic({
 
   const chartConfig = useMemo(
     () => ({
-      backgroundColor: THEME.cardBgFrom,
-      backgroundGradientFrom: THEME.cardBgFrom,
-      backgroundGradientTo: THEME.cardBgTo,
+      backgroundColor: THEME.cardBg,
+      backgroundGradientFrom: THEME.cardBg,
+      backgroundGradientTo: THEME.cardBg,
       backgroundGradientFromOpacity: 1,
       backgroundGradientToOpacity: 1,
       paddingRight: GRAPH_PADDING_RIGHT,
@@ -114,13 +112,13 @@ export default function HistoryGraphic({
       color: (opacity = 1) => `rgba(0,173,162,${opacity})`,
       labelColor: (opacity = 1) => `rgba(133,133,133,${opacity})`,
       propsForDots: {
-        r: "3",
-        strokeWidth: "1.5",
+        r: '3',
+        strokeWidth: '1.5',
         stroke: THEME.accent,
-        fill: THEME.cardBgFrom,
+        fill: THEME.cardBg,
       },
       propsForBackgroundLines: {
-        strokeDasharray: "0",
+        strokeDasharray: '0',
         stroke: THEME.grid,
         strokeWidth: 1,
       },
@@ -136,9 +134,10 @@ export default function HistoryGraphic({
           nativeEvent.layout.width - (GRAPH_PADDING_LEFT + GRAPH_PADDING_RIGHT),
           0
         )
-        if (!measuredWidth || Math.abs(inner - measuredWidth) > 1) {
-          setMeasuredWidth(inner)
-        }
+        setMeasuredWidth((prev) => {
+          if (prev === null || Math.abs(inner - prev) > 1) return inner
+          return prev
+        })
       }}
     >
       <LineChart
@@ -153,9 +152,8 @@ export default function HistoryGraphic({
         yAxisSuffix={yAxisSuffix}
         chartConfig={chartConfig}
         bezier
-        style={[styles.chart, { marginRight: 0 }]}
-     />
-
+        style={styles.chart}
+      />
     </View>
   )
 }
@@ -163,7 +161,7 @@ export default function HistoryGraphic({
 const styles = StyleSheet.create({
   wrapper: {
     maxWidth: 920,
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     marginTop: 20,
     marginHorizontal: SIDE_GUTTER,
     paddingTop: 12,
@@ -171,18 +169,18 @@ const styles = StyleSheet.create({
     paddingLeft: GRAPH_PADDING_LEFT,
     paddingRight: GRAPH_PADDING_RIGHT,
     borderRadius: 18,
-    backgroundColor: "#EFF9F8",
+    backgroundColor: '#EFF9F8',
     borderWidth: 1,
-    borderColor: "rgba(0,173,162,0.25)",
-    shadowColor: "rgba(0,173,162,0.32)",
+    borderColor: 'rgba(0,173,162,0.25)',
+    shadowColor: 'rgba(0,173,162,0.32)',
     shadowOpacity: 0.32,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 10 },
     elevation: 7,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   chart: {
     borderRadius: 12,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
 })
