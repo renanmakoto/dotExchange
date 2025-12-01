@@ -1,6 +1,8 @@
 import React from 'react'
 import { View, StyleSheet, Text } from 'react-native'
 
+const BRAND_LIGHT = '#FFFFFF'
+
 export default function Header() {
   return (
     <View style={styles.container}>
@@ -20,7 +22,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     lineHeight: 28,
-    color: '#FFFFFF',
+    color: BRAND_LIGHT,
     fontWeight: '800',
     letterSpacing: 0.8,
     textAlign: 'center',
