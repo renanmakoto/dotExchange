@@ -5,6 +5,10 @@ import * as SystemUI from 'expo-system-ui'
 import CurrencyConverter from './components/CurrencyConverter'
 
 const BRAND_COLOR = '#00ADA2'
+const BACKGROUND_ACCENT_COLOR = 'rgba(255,255,255,0.15)'
+const BACKGROUND_GLOW_COLOR = 'rgba(133,133,133,0.2)'
+const CONTENT_PADDING_TOP = 12
+const CONTENT_PADDING_BOTTOM = 6
 
 function RootLayout() {
   const insets = useSafeAreaInsets()
@@ -16,24 +20,26 @@ function RootLayout() {
 
   const bottomInset = useMemo(() => Math.max(insets.bottom, 0), [insets.bottom])
 
+  const contentPaddings = useMemo(() => ({
+    paddingTop: CONTENT_PADDING_TOP + topInset,
+    paddingBottom: CONTENT_PADDING_BOTTOM + bottomInset,
+  }), [topInset, bottomInset])
+
   return (
     <View style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" />
+      <StatusBar barStyle='light-content' backgroundColor='transparent' />
       <View style={styles.backgroundAccent} />
       <View style={styles.backgroundGlow} />
       <View
         style={[
           styles.content,
-          {
-            paddingTop: 12 + topInset,
-            paddingBottom: 6 + bottomInset,
-          },
+          contentPaddings,
         ]}
       >
         <CurrencyConverter />
       </View>
       <View
-        pointerEvents="none"
+        pointerEvents='none'
         style={[styles.statusBarOverlay, { height: topInset }]}
       />
     </View>
@@ -55,7 +61,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#00ADA2',
+    backgroundColor: BRAND_COLOR,
   },
   backgroundAccent: {
     position: 'absolute',
@@ -65,8 +71,7 @@ const styles = StyleSheet.create({
     height: 340,
     borderBottomLeftRadius: 220,
     borderBottomRightRadius: 220,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    opacity: 1,
+    backgroundColor: BACKGROUND_ACCENT_COLOR,
   },
   backgroundGlow: {
     position: 'absolute',
@@ -76,14 +81,13 @@ const styles = StyleSheet.create({
     height: 420,
     borderTopLeftRadius: 280,
     borderTopRightRadius: 280,
-    backgroundColor: 'rgba(133,133,133,0.2)',
-    opacity: 1,
+    backgroundColor: BACKGROUND_GLOW_COLOR,
   },
   content: {
     flex: 1,
     paddingHorizontal: 0,
-    paddingTop: 12,
-    paddingBottom: 6,
+    paddingTop: CONTENT_PADDING_TOP,
+    paddingBottom: CONTENT_PADDING_BOTTOM,
     alignItems: 'center',
   },
   statusBarOverlay: {
@@ -91,6 +95,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#00ADA2',
+    backgroundColor: BRAND_COLOR,
   },
 })
